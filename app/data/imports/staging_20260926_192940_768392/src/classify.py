@@ -144,7 +144,7 @@ def apply_classification(df_norm: pd.DataFrame, rules_path: str, overrides_path:
 
         # Check for YUMMY without sufficient context -> Force UNCLASSIFIED (ONLY if not a manual override)
         if not is_manual_override and re.search(r"(?i)yummy|yumy", desc):
-            context_keywords = r"(?i)traslado|trabajo|pasaje|casa\b|metropolis|guayos|ag[uú]itas|firestone|honda|canaima|santa\s*rosa|ahorcado|premiados|kit|entrega|cliente|comida|restaurante|donas|perro|hamburguesa|pizza|anilet|cashea"
+            context_keywords = r"(?i)traslado|trabajo|pasaje|casa\b|metropolis|guayos|ag[uú]itas|firestone|honda|canaima|premiados|kit|entrega|cliente|comida|restaurante|donas|perro|hamburguesa|pizza|anilet|cashea"
             if not re.search(context_keywords, desc):
                 regla_id = "UNCLASSIFIED_YUMMY_NO_CONTEXT"
                 classified = None

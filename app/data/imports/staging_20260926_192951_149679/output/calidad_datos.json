@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "WARNING",
   "raw_rows_total": 479,
   "transactions_total": 474,
   "excluded_rows": [
@@ -36,15 +36,15 @@
   ],
   "exact_duplicates": 2,
   "possible_duplicates": 43,
-  "classified_high": 256,
-  "classified_medium": 204,
+  "classified_high": 239,
+  "classified_medium": 215,
   "classified_manual_override": 14,
-  "unclassified": 0,
-  "classification_rate": 100.0,
+  "unclassified": 6,
+  "classification_rate": 98.73,
   "missing_fx": 0,
   "imputed_fx_values": 0,
-  "dim_categories_count": 50,
-  "distinct_idcategoria": 50,
+  "dim_categories_count": 51,
+  "distinct_idcategoria": 51,
   "movements_null_idcat": 0,
   "movements_orphans": 0,
   "budget_rows": 96,
@@ -57,7 +57,7 @@
   "date_min": "2026-07-01",
   "date_max": "2026-09-26",
   "domain_totals_usd": {
-    "personal": 1861.88,
+    "personal": 1835.18,
     "business": 176.87,
     "patrimonial": 5236.91
   },
