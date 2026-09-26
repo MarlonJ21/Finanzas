@@ -1,22 +1,21 @@
 FROM python:3.12-slim
 
-WORKDIR /app
+# Create user with UID 1000 (Hugging Face Spaces & cloud standards)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Install dependencies
-RUN pip install --no-cache-dir \
-    fastapi>=0.122.0 \
-    uvicorn>=0.38.0 \
-    python-multipart>=0.0.20 \
-    pandas>=2.3.0 \
-    pyarrow>=22.0.0 \
-    duckdb>=1.4.0 \
-    httpx>=0.28.0
+WORKDIR $HOME/app
 
-# Copy all project files (including pre-built app/frontend/out)
-COPY . /app
+# Install Python requirements
+COPY --chown=user:user requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Expose port (Render/HuggingFace set $PORT or use 8000)
-ENV PORT=8000
-EXPOSE 8000
+# Copy all project files (including pre-built frontend in app/frontend/out)
+COPY --chown=user:user . .
 
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --app-dir /app/app/backend"]
+ENV PORT=7860
+EXPOSE 7860
+
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860} --app-dir $HOME/app/app/backend"]
