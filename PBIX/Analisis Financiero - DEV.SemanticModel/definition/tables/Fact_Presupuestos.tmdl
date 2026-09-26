@@ -1,0 +1,395 @@
+table Fact_Presupuestos
+	lineageTag: 7d59043b-0efd-467d-9572-cd24b46db763
+
+	column Dominio
+		dataType: string
+		lineageTag: 45b51c92-4f83-48da-8d4d-bc30001cb263
+		summarizeBy: none
+		sourceColumn: Dominio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: aeada708-e789-4a2a-807f-ea0f45bac7bd
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategoria
+		dataType: string
+		lineageTag: 5b1208f0-783f-4a1c-9f5c-295c52cafa66
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column TitularGasto
+		dataType: string
+		lineageTag: c764adad-d94b-4826-a338-bc135a5ffff6
+		summarizeBy: none
+		sourceColumn: TitularGasto
+
+		annotation SummarizationSetBy = Automatic
+
+	column MontoMesActualUSD
+		dataType: double
+		lineageTag: 998ce038-9352-49ae-af66-8fc60962825c
+		summarizeBy: sum
+		sourceColumn: MontoMesActualUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Escenario
+		dataType: string
+		lineageTag: c4c86041-84e6-44ad-ba78-622e87458190
+		summarizeBy: none
+		sourceColumn: Escenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column MontoPresupuestadoUSD
+		dataType: double
+		lineageTag: 8a80c7fc-7824-451a-a8f1-266edcef5a93
+		summarizeBy: sum
+		sourceColumn: MontoPresupuestadoUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IdCategoria
+		dataType: string
+		lineageTag: 19ea4c72-d0cd-479b-ad1c-0590dfe9ca51
+		summarizeBy: none
+		sourceColumn: IdCategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column GastoActualMTD
+		dataType: double
+		lineageTag: e1241f03-3ccd-46c9-a726-c28f74a16f84
+		summarizeBy: sum
+		sourceColumn: GastoActualMTD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column GastoAnteriorMismoPeriodo
+		dataType: double
+		lineageTag: cc478e10-b6a7-4de4-98f6-ecbe5d2f19d3
+		summarizeBy: sum
+		sourceColumn: GastoAnteriorMismoPeriodo
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column GastoMesAnteriorCompleto
+		dataType: double
+		lineageTag: 3aa31464-2a1d-46cc-a831-0bf43541833f
+		summarizeBy: sum
+		sourceColumn: GastoMesAnteriorCompleto
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PromedioHistorico
+		dataType: double
+		lineageTag: e4a1add2-26aa-404d-8bf3-042e904b1c96
+		summarizeBy: sum
+		sourceColumn: PromedioHistorico
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MedianaHistorica
+		dataType: double
+		lineageTag: dcf843b0-068e-4e7b-8afe-9bad0a32c9e1
+		summarizeBy: sum
+		sourceColumn: MedianaHistorica
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column BaselineHistorico
+		dataType: double
+		lineageTag: 6e6ca805-85ad-42c7-b51a-4c2b88a5b05e
+		summarizeBy: sum
+		sourceColumn: BaselineHistorico
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column VariacionMismoPeriodoPct
+		dataType: double
+		lineageTag: cefb76f0-6417-455d-9e4c-3ec1f62bbdb5
+		summarizeBy: sum
+		sourceColumn: VariacionMismoPeriodoPct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ProyeccionCierreMesActual
+		dataType: double
+		lineageTag: 3fbcba13-3333-4793-a7db-b903e8bcd679
+		summarizeBy: sum
+		sourceColumn: ProyeccionCierreMesActual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ForecastProximoMes
+		dataType: double
+		lineageTag: 1699aa83-e486-4e17-aea9-54ee56a55930
+		summarizeBy: sum
+		sourceColumn: ForecastProximoMes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MetodoPrediccion
+		dataType: string
+		lineageTag: 04201278-471e-4956-9b19-64dd4b5c4833
+		summarizeBy: none
+		sourceColumn: MetodoPrediccion
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfianzaPrediccion
+		dataType: string
+		lineageTag: ca92f92f-5d74-4a0c-ab78-f1b57255fa91
+		summarizeBy: none
+		sourceColumn: ConfianzaPrediccion
+
+		annotation SummarizationSetBy = Automatic
+
+	column TipoForecast
+		dataType: string
+		lineageTag: b5db9261-3c9a-460a-aca2-0499a65049d4
+		summarizeBy: none
+		sourceColumn: TipoForecast
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesActual
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d5f0bd0b-227a-43a9-b8d4-74b24bdfa424
+		summarizeBy: none
+		sourceColumn: MesActual
+
+		variation Variación
+			isDefault
+			relationship: e08c3d77-620b-4aa7-a253-5b41e0fd09eb
+			defaultHierarchy: LocalDateTable_86d7cdee-09df-477c-b75d-2ffc38f77ea8.'Jerarquía de fechas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MesPlan
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9a8ce231-2469-41fa-b7b9-bca7015f43f3
+		summarizeBy: none
+		sourceColumn: MesPlan
+
+		variation Variación
+			isDefault
+			relationship: 801f85b9-50ec-4c05-8a93-a9c7039cb7b2
+			defaultHierarchy: LocalDateTable_096a7437-5d46-4418-9479-23801c4acd0b.'Jerarquía de fechas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FechaCorte
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f951ea69-5104-46f0-9cd4-5ab8e897e9d3
+		summarizeBy: none
+		sourceColumn: FechaCorte
+
+		variation Variación
+			isDefault
+			relationship: c0709579-8242-43b4-8dd3-11574fff18b2
+			defaultHierarchy: LocalDateTable_2e6856da-2b78-442b-852d-a2ed301e68cc.'Jerarquía de fechas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EstadoPlan
+		dataType: string
+		lineageTag: addf0578-28dc-4e2c-9251-02a3f48cd0f8
+		summarizeBy: none
+		sourceColumn: EstadoPlan
+
+		annotation SummarizationSetBy = Automatic
+
+	column PresupuestoSugeridoUSD
+		dataType: double
+		lineageTag: e122a85e-6956-4da0-985c-da351343d565
+		summarizeBy: sum
+		sourceColumn: PresupuestoSugeridoUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FactorEscenario
+		dataType: double
+		lineageTag: 720b7690-aca4-4f39-8c48-de08140c22e0
+		summarizeBy: sum
+		sourceColumn: FactorEscenario
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PresupuestoManualUSD
+		dataType: double
+		lineageTag: 1dbe6591-c4c6-4a48-9f75-9cda6a42d16e
+		summarizeBy: sum
+		sourceColumn: PresupuestoManualUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PresupuestoFinalUSD
+		dataType: double
+		lineageTag: 81eb3fd8-c840-4fc1-8b16-4f753c7e4115
+		summarizeBy: sum
+		sourceColumn: PresupuestoFinalUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ConfidenceScore
+		dataType: int64
+		formatString: 0
+		lineageTag: eae52ae2-9695-4b53-9bd1-bebda9ad2f2c
+		summarizeBy: sum
+		sourceColumn: ConfidenceScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfidenceReason
+		dataType: string
+		lineageTag: 627b97b8-2d53-4976-bb43-7d492f47d0bc
+		summarizeBy: none
+		sourceColumn: ConfidenceReason
+
+		annotation SummarizationSetBy = Automatic
+
+	column TipoForecastAntes
+		dataType: string
+		lineageTag: f3d4db3f-36b3-4db0-bfb3-9a6408a510b1
+		summarizeBy: none
+		sourceColumn: TipoForecastAntes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Flexibilidad
+		dataType: string
+		lineageTag: 963451cc-75c7-4bc3-8e09-3e4ecb11f8a7
+		summarizeBy: none
+		sourceColumn: Flexibilidad
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsEsencial
+		dataType: int64
+		formatString: 0
+		lineageTag: f3d46e61-4d07-45ec-a04b-7feacccd2992
+		summarizeBy: sum
+		sourceColumn: EsEsencial
+
+		annotation SummarizationSetBy = Automatic
+
+	column FactorRealistic
+		dataType: double
+		lineageTag: 130b417f-b434-465d-aca8-f9533d8fb9d1
+		summarizeBy: sum
+		sourceColumn: FactorRealistic
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FactorAggressive
+		dataType: double
+		lineageTag: ae37b38f-1b7e-41b8-9080-680af7eb05cf
+		summarizeBy: sum
+		sourceColumn: FactorAggressive
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FloorUSD
+		dataType: double
+		lineageTag: 3f842dd4-66a6-41dd-b168-32cb86670dc9
+		summarizeBy: sum
+		sourceColumn: FloorUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CapUSD
+		dataType: double
+		lineageTag: 691dd65b-1024-4a55-b325-dd8e57fb32a6
+		summarizeBy: sum
+		sourceColumn: CapUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PresupuestoBaseForecastUSD
+		dataType: double
+		lineageTag: b513f17e-227f-4830-8925-f622d4baeaea
+		summarizeBy: sum
+		sourceColumn: PresupuestoBaseForecastUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AjusteEscenarioUSD
+		dataType: double
+		lineageTag: e2d2bc42-d822-4582-ab93-a4ab4b8843a4
+		summarizeBy: sum
+		sourceColumn: AjusteEscenarioUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Fact_Presupuestos = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents("C:\Users\m.ortega\Documents\M.ORTEGA\m.ortega\fin per\DWH\output\presupuesto.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])
+				in
+				    Origen
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

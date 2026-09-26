@@ -1,0 +1,35 @@
+table Dim_Quincena
+	lineageTag: a66602c6-550f-4170-9bd1-7877109237e0
+
+	column Quincena
+		formatString: 0
+		lineageTag: 94f4880b-a78c-429a-bc2f-a9e9b7888685
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Quincena]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Nombre
+		lineageTag: 2148a800-97b5-47d2-b39f-4dd4f6ebea90
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Nombre]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Quincena = calculated
+		mode: import
+		source =
+				
+				DATATABLE (
+				    "Quincena", INTEGER,
+				    "Nombre", STRING,
+				    {
+				        { 1, "1ra Quincena" },
+				        { 2, "2da Quincena" }
+				    }
+				)
+
+	annotation PBI_Id = 1f37f680c1e14f27a74d2c446e86ffa5
+

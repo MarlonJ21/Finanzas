@@ -1,0 +1,983 @@
+table _Medidas
+	lineageTag: 89fe0489-6811-4dc2-9eb2-69ba218f90b4
+
+	measure 'Monto USD' =
+			
+			SUM ( Fact_Movimientos[MontoUSD] )
+		displayFolder: 0. Generales
+		lineageTag: 783fba57-6396-4a66-a245-f84348a8a45a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Económico USD' =
+			
+			CALCULATE (
+			    [Monto USD],
+			    Fact_Movimientos[EsIngresoEconomico] = TRUE()
+			)
+		formatString: 0
+		displayFolder: 3. Ingresos
+		lineageTag: 27ba26d1-8f2b-4272-b30f-1e979d3026fc
+
+	measure 'Gasto Económico USD' =
+			
+			CALCULATE (
+			    [Monto USD],
+			    Fact_Movimientos[EsEgresoEconomico] = TRUE()
+			)
+		formatString: 0
+		displayFolder: 1. Gastos
+		lineageTag: e5bab63a-f098-4269-b817-bbd75bf58680
+
+	measure 'Gasto Personal USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsEgresoEconomico] = 1,
+			    Fact_Movimientos[EsPresupuestable] = 1
+			)
+		formatString: 0
+		displayFolder: 1. Gastos
+		lineageTag: 6ef39230-fdc9-444c-82dc-e9a8747cb3cc
+
+	measure 'Ingreso Personal USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		formatString: 0
+		displayFolder: 3. Ingresos
+		lineageTag: 1c27b2dd-b5e8-46fa-a449-439f5345a02b
+
+	measure 'Ahorro Real USD' =
+			
+			[Ingreso Personal USD]
+			    - [Gasto Personal USD]
+		formatString: 0
+		displayFolder: 4. Ahorros
+		lineageTag: c2184c6e-7d26-4616-a718-b75910a6e18a
+
+	measure 'Savings Rate' =
+			
+			DIVIDE (
+			    [Ahorro Real USD],
+			    [Ingreso Personal USD]
+			)
+		displayFolder: 0. Generales
+		lineageTag: f4022f11-cd29-4041-b94a-ddc4ce63b36e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Presupuesto USD' =
+			
+			VAR EscenarioSeleccionado =
+			    SELECTEDVALUE(
+			        Fact_Presupuestos[Escenario],
+			        "REALISTIC"
+			    )
+			RETURN
+			CALCULATE(
+			    SUM(Fact_Presupuestos[MontoPresupuestadoUSD]),
+			    REMOVEFILTERS(Fact_Presupuestos[Escenario]),
+			    Fact_Presupuestos[Escenario] = EscenarioSeleccionado
+			)
+		displayFolder: 2. Presupuestos
+		lineageTag: c5519cc0-0f39-4b28-87df-a186d0d3ba80
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Presupuesto Restante USD' =
+			
+			[Presupuesto USD]
+			    - [Gasto Personal USD]
+		displayFolder: 2. Presupuestos
+		lineageTag: 625504a3-e206-43d6-9d2b-b7e357d26b4a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Consumido' =
+			
+			DIVIDE (
+			    [Gasto Personal USD],
+			    [Presupuesto USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 65758d07-b73a-4d8a-bda7-0a51c9133cff
+
+	measure 'Gasto Actual USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsEgresoEconomico] = 1,
+			    Fact_Movimientos[EsPresupuestable] = 1
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Gastos
+		lineageTag: 6f5f452d-fc99-4357-931d-d7a773748e3e
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-US"}
+
+	measure 'Disponible USD' =
+			
+			[Presupuesto USD] - [Gasto Actual USD]]
+		displayFolder: 0. Generales
+		lineageTag: c7cb5aa8-6f3a-4a2e-8aca-6729a3b4d1ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Negocio USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "NEGOCIO",
+			    Fact_Movimientos[EsEgresoEconomico] = 1
+			)
+		displayFolder: 1. Gastos
+		lineageTag: 000a1acc-d9d0-4dee-aeec-3fc2f4cafb07
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Salario Quincenal Mediano' =
+			
+			CALCULATE(
+			    MEDIAN(Fact_Movimientos[MontoUSD]),
+			
+			    REMOVEFILTERS(Fact_Movimientos),
+			    REMOVEFILTERS(Dim_Fecha),
+			    REMOVEFILTERS(Dim_Quincena),
+			    REMOVEFILTERS(Dim_Categorias),
+			
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[Categoria] = "Ingresos",
+			    Fact_Movimientos[Subcategoria] = "Salario",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: cd991756-7c59-4caa-9b83-f75ea86698ae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Sostenible Mensual' =
+			
+			[Salario Quincenal Mediano] * 2
+		displayFolder: 3. Ingresos
+		lineageTag: 717a8fee-941c-4f1a-9089-872b99fe7e1b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ahorro Objetivo USD' =
+			
+			[Ingreso Sostenible Mensual] - [Presupuesto USD]
+		displayFolder: 4. Ahorros
+		lineageTag: 7fbf8470-2b57-4f8d-853a-80b92881ede7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Savings Rate Objetivo' =
+			
+			DIVIDE(
+			    [Ahorro Objetivo USD],
+			    [Ingreso Sostenible Mensual]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 4. Ahorros
+		lineageTag: e18f0c78-a443-46fd-ba8b-1b6bdfdd246f
+
+	measure 'Disponible para Gastar USD' =
+			
+			[Presupuesto USD] - [Gasto Personal USD]
+		formatString: 0.00
+		displayFolder: 4. Ahorros
+		lineageTag: 3582957f-38e7-48f0-add5-318473436539
+
+	measure 'Presupuesto Quincenal USD' =
+			
+			SUM (
+			    Fact_Presupuestos_Quincenal[MontoPresupuestoQuincenalUSD]
+			)
+		displayFolder: 2. Presupuestos
+		lineageTag: f36a21e6-3f3c-4de3-8dda-094471790dd9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Quincenal USD' =
+			
+			[Gasto Personal USD]
+		displayFolder: 1. Gastos
+		lineageTag: 57860401-7bd5-4df3-ab11-76c14c59854a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Quincenal USD' =
+			
+			[Presupuesto Quincenal USD]
+			    - [Gasto Quincenal USD]
+		displayFolder: 0. Generales
+		lineageTag: a1e0db29-f53b-42bf-80af-1a73222a949e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Quincenal Consumido' =
+			
+			DIVIDE (
+			    [Gasto Quincenal USD],
+			    [Presupuesto Quincenal USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 0e786a5a-bd6c-4f09-b350-dbea3ef92458
+
+	measure 'Salario Cobrado Quincena USD' =
+			
+			CALCULATE (
+			    SUM ( Fact_Movimientos[MontoUSD] ),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[Categoria] = "Ingresos",
+			    Fact_Movimientos[Subcategoria] = "Salario",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: 5f42366e-0b1d-445b-9f1d-a6d6ea0dcc03
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Sostenible Quincenal' =
+			
+			DIVIDE (
+			    [Ingreso Sostenible Mensual],
+			    2
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: d1c40db3-54f9-4bec-8909-78c3b9f41a24
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ahorro Objetivo Quincenal USD' =
+			
+			[Ingreso Sostenible Quincenal]
+			    - [Presupuesto Quincenal USD]
+		displayFolder: 4. Ahorros
+		lineageTag: 8d128b04-96ad-49c0-8dca-73c63349cd68
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Savings Rate Objetivo Quincenal' =
+			
+			DIVIDE (
+			    [Ahorro Objetivo Quincenal USD],
+			    [Ingreso Sostenible Quincenal]
+			)
+		displayFolder: 4. Ahorros
+		lineageTag: f13227ca-7a7b-49b8-8790-76e2ddcde6ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Estado Cobro Quincena' =
+			
+			IF (
+			    [Salario Cobrado Quincena USD] > 0,
+			    "COBRADA",
+			    "PENDIENTE DE COBRO"
+			)
+		displayFolder: 0. Generales
+		lineageTag: 3636a718-b7e8-40a2-bd3f-ef8dc92b6cfa
+
+	measure 'Disponible Presupuesto Quincena USD' =
+			
+			[Presupuesto Quincenal USD]
+			    - [Gasto Quincenal USD]
+		displayFolder: 0. Generales
+		lineageTag: 8c05ca49-c500-4f33-89a0-5faa845d526a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Real Quincena USD' =
+			
+			VAR Cobrado =
+			    [Salario Cobrado Quincena USD]
+			VAR Gasto =
+			    [Gasto Quincenal USD]
+			VAR AhorroObjetivo =
+			    [Ahorro Objetivo Quincenal USD]
+			RETURN
+			IF (
+			    Cobrado <= 0,
+			    0,
+			    Cobrado - AhorroObjetivo - Gasto
+			)
+		displayFolder: 0. Generales
+		lineageTag: 1e412c9e-2d7e-448f-98b9-9123000e436c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Safe to Spend USD' =
+			VAR Cobrado = [Salario Cobrado Quincena USD]
+			VAR DisponibleQ = [Disponible Quincenal USD]
+			VAR DisponibleMes = [Disponible Mensual USD]
+			RETURN
+			IF(
+			    Cobrado <= 0,
+			    0,
+			    MAX(
+			        0,
+			        MIN(
+			            DisponibleQ,
+			            DisponibleMes
+			        )
+			    )
+			)
+		displayFolder: 0. Generales
+		lineageTag: ee41c590-80fe-41b0-b3cd-453bc2ae76ee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Mensual USD' =
+			
+			CALCULATE(
+			    [Gasto Personal USD],
+			    REMOVEFILTERS(Dim_Quincena)
+			)
+		displayFolder: 1. Gastos
+		lineageTag: d56ba4b2-b3e0-4653-9df6-f67fbdd49ca3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Mensual USD' =
+			
+			[Presupuesto USD] - [Gasto Mensual USD]
+		displayFolder: 0. Generales
+		lineageTag: 392c12e3-8303-402e-ac32-20ea7ff575be
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Mensual Consumido' =
+			
+			DIVIDE(
+			    [Gasto Mensual USD],
+			    [Presupuesto USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 537e0491-9217-4b46-a837-6af0a64fd7c4
+
+	measure 'Quincena Seleccionada Texto' = SELECTEDVALUE ( Dim_Quincena[Nombre], "quincena seleccionada" )
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 22289fd0-4e5a-4721-a056-ec286e738bb1
+
+	measure 'Texto Alerta Quincenal' =
+			VAR Estado = [Estado Presupuesto Quincenal]
+			VAR DisponibleQ = [Disponible Quincenal USD]
+			VAR QuincenaTxt = [Quincena Seleccionada Texto]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    Estado IN { "Excedido", "No presupuestado" }, "Alerta: " & QuincenaTxt & " excedida por $" & FORMAT ( ABS ( DisponibleQ ), "#,0.00" ),
+			    Estado = "Cerca", "Atención: " & QuincenaTxt & " cerca del límite",
+			    "En control: " & QuincenaTxt & " con margen de $" & FORMAT ( DisponibleQ, "#,0.00" )
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 304953f3-604a-4237-a731-670c00dbea8c
+
+	measure 'Texto Margen Mensual' = "Margen mensual restante: $" & FORMAT ( [Disponible Mensual USD], "#,0.00" )
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 644247bf-f744-4c0d-b1f1-d555787c3da1
+
+	measure 'Estado Presupuesto Quincenal' =
+			VAR Presupuesto = [Presupuesto Quincenal USD]
+			VAR Gasto = [Gasto Quincenal USD]
+			VAR Pct = [% Presupuesto Quincenal Consumido]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    COALESCE ( Presupuesto, 0 ) = 0 && COALESCE ( Gasto, 0 ) = 0, "Sin movimiento",
+			    COALESCE ( Presupuesto, 0 ) = 0 && Gasto > 0, "No presupuestado",
+			    Pct <= 0.9, "Dentro",
+			    Pct <= 1, "Cerca",
+			    "Excedido"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 597aab40-cae0-47ca-8bc0-560b9621521c
+
+	measure 'Estado Presupuesto Mensual' =
+			VAR Presupuesto = [Presupuesto USD]
+			VAR Gasto = [Gasto Mensual USD]
+			VAR Pct = [% Presupuesto Mensual Consumido]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    COALESCE ( Presupuesto, 0 ) = 0 && COALESCE ( Gasto, 0 ) = 0, "Sin movimiento",
+			    COALESCE ( Presupuesto, 0 ) = 0 && Gasto > 0, "No presupuestado",
+			    Pct <= 0.9, "Dentro",
+			    Pct <= 1, "Cerca",
+			    "Excedido"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 17027a8b-5a06-460b-90d6-ee908a9f9f36
+
+	measure 'Color Estado Quincenal' =
+			SWITCH (
+			    [Estado Presupuesto Quincenal],
+			    "Dentro", "#22C58B",
+			    "Cerca", "#F4B740",
+			    "Excedido", "#FF5F67",
+			    "No presupuestado", "#FF5F67",
+			    "Sin movimiento", "#7F899F",
+			    "#AEB8D0"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 23256586-3bcf-4f44-88e0-eb7efab91057
+
+	measure 'Color Estado Mensual' =
+			SWITCH (
+			    [Estado Presupuesto Mensual],
+			    "Dentro", "#22C58B",
+			    "Cerca", "#F4B740",
+			    "Excedido", "#FF5F67",
+			    "No presupuestado", "#FF5F67",
+			    "Sin movimiento", "#7F899F",
+			    "#AEB8D0"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 6c261a3d-0b61-4510-a55e-d37114323773
+
+	measure 'Exceso Mensual USD' =
+			MAX (
+			    0,
+			    [Gasto Mensual USD] - [Presupuesto USD]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 54252eb2-d9bf-4623-b722-9b7f6686179d
+
+	measure 'Margen Mensual Positivo USD' =
+			MAX (
+			    0,
+			    [Presupuesto USD] - [Gasto Mensual USD]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 127868d7-0bc3-4d61-ae1d-ec2eb2fc12d7
+
+	measure 'P2 Presupuesto Actual USD' = SUM ( Fact_Presupuestos[MontoPresupuestadoUSD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: a3d18559-f04f-47d1-a58a-cf305c5fea72
+
+	measure 'P2 Forecast Próximo Mes USD' = SUM ( Fact_Presupuestos[ForecastProximoMes] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: 129845e5-74dd-4633-b4dc-6976c4fca96e
+
+	measure 'P2 Presupuesto Sugerido USD' = SUM ( Fact_Presupuestos[PresupuestoSugeridoUSD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: 684dfa78-9dde-431f-88da-b00f30ad5a84
+
+	measure 'P2 Presupuesto Final USD' = SUM ( Fact_Presupuestos[PresupuestoFinalUSD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: 16617a46-d644-4d5c-9e1b-587409208e40
+
+	measure 'P2 Gasto Actual MTD USD' = SUM ( Fact_Presupuestos[GastoActualMTD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: 6e2b685b-49f9-471d-a0c6-8d277a26628a
+
+	measure 'P2 Mismo Periodo Anterior USD' = SUM ( Fact_Presupuestos[GastoAnteriorMismoPeriodo] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: cc4ad299-6d8c-42db-b5d1-ef23d8c4d843
+
+	measure 'P2 Mes Anterior Completo USD' = SUM ( Fact_Presupuestos[GastoMesAnteriorCompleto] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: f1ef2561-a4b6-4834-a654-0a92e1734c9e
+
+	measure 'P2 Promedio Histórico USD' = SUM ( Fact_Presupuestos[PromedioHistorico] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: 183a9895-d77b-4284-a818-5027768025d4
+
+	measure 'P2 Mediana Histórica USD' = SUM ( Fact_Presupuestos[MedianaHistorica] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: 2854b6cf-6775-43d7-8612-3e78c6821af5
+
+	measure 'P2 Proyección Cierre Mes Actual USD' = SUM ( Fact_Presupuestos[ProyeccionCierreMesActual] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Evidencia
+		lineageTag: b9beadf6-6004-45cb-b1ab-6795683745b9
+
+	measure 'P2 Presupuesto Manual USD' = SUM ( Fact_Presupuestos[PresupuestoManualUSD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: 269facc8-1249-45f5-8000-607d57304b23
+
+	measure 'P2 Confianza Texto' = SELECTEDVALUE ( Fact_Presupuestos[ConfianzaPrediccion] )
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: 0e523e6d-236f-45f7-8a78-8f61cc0d90a3
+
+	measure 'P2 Tipo Forecast Texto' = SELECTEDVALUE ( Fact_Presupuestos[TipoForecast] )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: fb3e6388-22f6-4d02-8a6b-fd447c00637a
+
+	measure 'P2 Origen Final Texto' = IF ( NOT ISBLANK ( [P2 Presupuesto Manual USD] ), "AJUSTE GUARDADO", "Sugerido" )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: 8c625e28-b02d-47c2-8c2c-b7bed230a338
+
+	measure 'P2 Flexibilidad Texto' = SELECTEDVALUE ( Fact_Presupuestos[Flexibilidad] )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: bddb092e-5388-4440-9158-4ef0724879d3
+
+	measure 'P2 Esencial Texto' = IF ( SELECTEDVALUE ( Fact_Presupuestos[EsEsencial], 0 ) = 1, "Sí", "No" )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: c4cc18f8-d67a-4174-b6a9-043fd2a715ec
+
+	measure 'P2 Confidence Score' = MAX ( Fact_Presupuestos[ConfidenceScore] )
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: a26f9bf8-be4d-47f4-af0c-d5936cca445b
+
+	measure 'P2 Factor Escenario' = MAX ( Fact_Presupuestos[FactorEscenario] )
+		formatString: 0.00
+		displayFolder: 5. Planificador Próximo Mes\Análisis
+		lineageTag: 89ab492f-5a7a-4124-a70d-2e1cf68bb8a7
+
+	measure 'P2 Cambio vs Presupuesto Actual USD' = [P2 Presupuesto Final USD] - [P2 Presupuesto Actual USD]
+		formatString: +\$#,0.00;-\$#,0.00;\$0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: b89b4cf2-c66e-4db9-a25b-72e534e2a0ba
+
+	measure 'P2 Ahorro Esperado USD' = [Ingreso Sostenible Mensual] - [P2 Presupuesto Final USD]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: 919384ad-7e80-4020-8367-d5283fc2c2bc
+
+	measure 'P2 % Ahorro Esperado' = DIVIDE ( [P2 Ahorro Esperado USD], [Ingreso Sostenible Mensual] )
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 5. Planificador Próximo Mes\KPIs
+		lineageTag: c36db37e-9d0f-4340-9be8-f7320138bb51
+
+	measure 'P2 Mes Plan Texto' =
+			VAR MesPlan = MIN ( Fact_Presupuestos[MesPlan] )
+			RETURN
+			FORMAT ( MesPlan, "mmmm yyyy" )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: e7e95d89-c58e-4d8e-9470-e6ab8a8cd0bf
+
+	measure 'P2 Subtítulo Plan' =
+			VAR MesPlan = [P2 Mes Plan Texto]
+			VAR FechaCorte = MIN ( Fact_Presupuestos[FechaCorte] )
+			RETURN
+			"Planificando " & MesPlan & " · Datos disponibles hasta " & FORMAT ( FechaCorte, "dd/mm/yyyy" )
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: 64bfcb9b-7e96-40e9-9f56-810a56756101
+
+	measure 'P2 Estado Plan Texto' =
+			VAR PlanningActivo =
+			    IF ( [Salario Cobrado Quincena USD] > 0 && COUNTROWS ( Fact_Presupuestos ) > 0, "PLAN ACTIVO", "PLAN PENDIENTE" )
+			VAR Estado = SELECTEDVALUE ( Fact_Presupuestos[EstadoPlan], "DRAFT" )
+			RETURN
+			PlanningActivo & " · " & Estado
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: 0167fe58-eaed-42f2-9708-489345d74a22
+
+	measure 'P2 Mensaje Ejecutivo' =
+			VAR Escenario = SELECTEDVALUE ( Fact_Presupuestos[Escenario], "REALISTIC" )
+			VAR MesPlan = [P2 Mes Plan Texto]
+			VAR Final = [P2 Presupuesto Final USD]
+			VAR Cambio = [P2 Cambio vs Presupuesto Actual USD]
+			VAR Forecast = [P2 Forecast Próximo Mes USD]
+			VAR ExtraAgg =
+			    [P2 Presupuesto Actual USD] - [P2 Presupuesto Final USD]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    Escenario = "CURRENT",
+			        "Continuidad: para " & MesPlan & " el comportamiento proyectado sugiere $" & FORMAT ( Final, "#,0.00" ) & ".",
+			    Escenario = "AGGRESSIVE",
+			        "Escenario agresivo: presupuesto final $" & FORMAT ( Final, "#,0.00" ) & ", con ajuste de $" & FORMAT ( ABS ( ExtraAgg ), "#,0.00" ) & " frente al presupuesto actual.",
+			    "Para " & MesPlan & " se recomienda un presupuesto de $" & FORMAT ( Final, "#,0.00" ) & ". Representa " &
+			        IF ( Cambio >= 0, "un aumento de $", "una reducción de $" ) &
+			        FORMAT ( ABS ( Cambio ), "#,0.00" ) & " frente al presupuesto operativo actual. El forecast sin ajuste sería $" &
+			        FORMAT ( Forecast, "#,0.00" ) & "."
+			)
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: b92849e9-d91b-49e0-995e-e93385910dd4
+
+	measure 'P2 Delta Sugerido vs Actual USD' = [P2 Presupuesto Sugerido USD] - [P2 Presupuesto Actual USD]
+		formatString: +\$#,0.00;-\$#,0.00;\$0.00
+		displayFolder: 5. Planificador Próximo Mes\Análisis
+		lineageTag: befdc2d6-dffc-4dd0-89d6-6d6ba072e3c5
+
+	measure 'P2 Delta Magnitud USD' = ABS ( [P2 Delta Sugerido vs Actual USD] )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Análisis
+		lineageTag: f4a7c0c6-7393-448b-a0bb-236e6285de09
+
+	measure 'P2 Color Delta' =
+			SWITCH (
+			    TRUE (),
+			    [P2 Delta Sugerido vs Actual USD] > 0, "#FF6B74",
+			    [P2 Delta Sugerido vs Actual USD] < 0, "#22C58B",
+			    "#AEB8D0"
+			)
+		displayFolder: 5. Planificador Próximo Mes\Formato
+		lineageTag: d73c79fa-36ce-4141-90e8-6b2dd8a3a1a7
+
+	measure 'P2 Color Confianza' =
+			SWITCH (
+			    SELECTEDVALUE ( Fact_Presupuestos[ConfianzaPrediccion] ),
+			    "HIGH", "#22C58B",
+			    "MEDIUM", "#F4B740",
+			    "LOW", "#FF6B74",
+			    "#AEB8D0"
+			)
+		displayFolder: 5. Planificador Próximo Mes\Formato
+		lineageTag: f6e5233f-9a3d-4464-b66e-ed81aa8c0fbd
+
+	measure 'P2 Confianza Alta' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Fact_Presupuestos[IdCategoria] ),
+			    Fact_Presupuestos[ConfianzaPrediccion] = "HIGH"
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: de23045d-3be9-44e9-b74b-b095f6ddf1ad
+
+	measure 'P2 Confianza Media' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Fact_Presupuestos[IdCategoria] ),
+			    Fact_Presupuestos[ConfianzaPrediccion] = "MEDIUM"
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: c7a56228-c534-4089-855e-56864c406f61
+
+	measure 'P2 Confianza Baja' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Fact_Presupuestos[IdCategoria] ),
+			    Fact_Presupuestos[ConfianzaPrediccion] = "LOW"
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: a3436032-159a-4585-9210-f539d337993e
+
+	measure 'P2 Resumen Confianza' =
+			FORMAT ( [P2 Confianza Alta], "0" ) & " Alta · " &
+			FORMAT ( [P2 Confianza Media], "0" ) & " Media · " &
+			FORMAT ( [P2 Confianza Baja], "0" ) & " Baja"
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: f4a99253-a8a2-4245-b2f9-45e9248ae137
+
+	measure 'P2 Ajuste Simulado Seleccionado USD' = SELECTEDVALUE ( 'Ajuste Simulado USD'[Ajuste Simulado USD], 0 )
+		formatString: +\$#,0;-\$#,0;\$0
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 0f6a0d8c-f742-4c66-a163-fd2c37a22dbe
+
+	measure 'P2 Presupuesto Seleccionado Base USD' =
+			IF (
+			    [P2 Categoría Única Seleccionada] = 1,
+			    [P2 Presupuesto Final USD],
+			    BLANK ()
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: c5897ff2-e214-4def-828d-34d707323064
+
+	measure 'P2 Presupuesto Simulado Categoría USD' =
+			VAR Base = [P2 Presupuesto Seleccionado Base USD]
+			VAR Ajuste = [P2 Ajuste Simulado Seleccionado USD]
+			RETURN
+			IF ( [P2 Categoría Única Seleccionada] = 1, MAX ( 0, Base + Ajuste ), BLANK () )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: ed8695e5-7771-4feb-91de-2e336f85250a
+
+	measure 'P2 Presupuesto Total Simulado USD' =
+			VAR TotalGlobal = [P2 Presupuesto Final Global USD]
+			VAR BaseCategoria = [P2 Presupuesto Seleccionado Base USD]
+			VAR SimuladoCategoria = [P2 Presupuesto Simulado Categoría USD]
+			RETURN
+			IF (
+			    [P2 Categoría Única Seleccionada] = 1,
+			    TotalGlobal - BaseCategoria + SimuladoCategoria,
+			    TotalGlobal
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 02b015bf-1d37-44d8-b4af-c5157186af46
+
+	measure 'P2 Ahorro Simulado USD' = [P2 Ingreso Sostenible Global] - [P2 Presupuesto Total Simulado USD]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 6bc3d962-3f20-4827-8c50-ffe3abbbd623
+
+	measure 'P2 % Ahorro Simulado' = DIVIDE ( [P2 Ahorro Simulado USD], [P2 Ingreso Sostenible Global] )
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 3430f153-e27d-43aa-b4c3-1ed53e8d0ab1
+
+	measure 'P2 Panel Simulación Texto' =
+			IF (
+			    [P2 Categoría Única Seleccionada] = 1,
+			    "Sugerido: $" & FORMAT ( [P2 Presupuesto Seleccionado Base USD], "#,0.00" ) &
+			        " · Ajuste: " & FORMAT ( [P2 Ajuste Simulado Seleccionado USD], "+$#,0;-$#,0;$0" ) &
+			        " · Simulado: $" & FORMAT ( [P2 Presupuesto Simulado Categoría USD], "#,0.00" ) &
+			        " · Nuevo total: $" & FORMAT ( [P2 Presupuesto Total Simulado USD], "#,0.00" ) &
+			        " · Ahorro: $" & FORMAT ( [P2 Ahorro Simulado USD], "#,0.00" ) &
+			        " (" & FORMAT ( [P2 % Ahorro Simulado], "0.00%" ) & ")",
+			    "Selecciona una categoría para simular un ajuste."
+			)
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 04d14702-7fd6-4214-90d8-51d3c0dde822
+
+	measure 'P2 Explicación Categoría' =
+			VAR Tipo = SELECTEDVALUE ( Fact_Presupuestos[TipoForecast] )
+			VAR Confianza = SELECTEDVALUE ( Fact_Presupuestos[ConfianzaPrediccion] )
+			VAR Forecast = [P2 Forecast Próximo Mes USD]
+			VAR Sugerido = [P2 Presupuesto Sugerido USD]
+			VAR Factor = SELECTEDVALUE ( Fact_Presupuestos[FactorEscenario] )
+			VAR Base =
+			    SWITCH (
+			        TRUE (),
+			        Tipo = "FIXED", "Gasto recurrente estable. No se aplica reducción porque se considera un compromiso fijo.",
+			        Tipo = "DEBT", "Obligación vigente. No se reduce artificialmente entre escenarios.",
+			        Tipo = "SPARSE", "Gasto ocasional. El modelo evita extrapolar una compra puntual como gasto mensual recurrente.",
+			        Tipo = "VARIABLE", "Consumo variable. El escenario seleccionado aplica el factor de comportamiento correspondiente.",
+			        "Selecciona una categoría para ver la explicación."
+			    )
+			RETURN
+			IF (
+			    HASONEVALUE ( Dim_Categorias[IdCategoria] ),
+			    Base & " Forecast: $" & FORMAT ( Forecast, "#,0.00" ) &
+			        ". Factor aplicado: " & FORMAT ( Factor, "0.00" ) &
+			        ". Presupuesto sugerido: $" & FORMAT ( Sugerido, "#,0.00" ) &
+			        ". Confianza: " & Confianza & ".",
+			    "Selecciona una categoría o subcategoría en la matriz para ver la explicación."
+			)
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: 8143b251-5f1d-4c78-be2a-7a74952a19d7
+
+	measure 'P2 Presupuesto Actual Global USD' =
+			CALCULATE (
+			    [P2 Presupuesto Actual USD],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: 91b77956-929c-4f2c-9aa1-67701523d8e7
+
+	measure 'P2 Forecast Próximo Mes Global USD' =
+			CALCULATE (
+			    [P2 Forecast Próximo Mes USD],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: 77c52ab8-5a4c-4828-8ab9-6491e8a22433
+
+	measure 'P2 Presupuesto Sugerido Global USD' =
+			CALCULATE (
+			    [P2 Presupuesto Sugerido USD],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: 8a32ad6d-5795-476f-a7b7-f86f5810926a
+
+	measure 'P2 Presupuesto Final Global USD' =
+			CALCULATE (
+			    [P2 Presupuesto Final USD],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: 58562e36-75f6-47c6-ac85-e4d06bd88502
+
+	measure 'P2 Cambio Presupuesto Global USD' = [P2 Presupuesto Final Global USD] - [P2 Presupuesto Actual Global USD]
+		formatString: +\$#,0.00;-\$#,0.00;\$0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: c199a94f-4850-4a98-a544-06abff0a45f9
+
+	measure 'P2 Ingreso Sostenible Global' =
+			CALCULATE (
+			    [Ingreso Sostenible Mensual],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: d0fdb44c-bea6-48b5-9f9a-5788eca9d56b
+
+	measure 'P2 Ahorro Esperado Global USD' = [P2 Ingreso Sostenible Global] - [P2 Presupuesto Final Global USD]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: 7a5fd963-4109-43bb-b638-50488b43b603
+
+	measure 'P2 % Ahorro Esperado Global' = DIVIDE ( [P2 Ahorro Esperado Global USD], [P2 Ingreso Sostenible Global] )
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 5. Planificador Próximo Mes\KPIs Globales
+		lineageTag: e4c2320e-14db-49f0-9d05-97458bb0bb05
+
+	measure 'P2 Confianza Alta Global' =
+			CALCULATE (
+			    [P2 Confianza Alta],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: e90f1815-8837-4c1c-88e9-39a6e5c8462c
+
+	measure 'P2 Confianza Media Global' =
+			CALCULATE (
+			    [P2 Confianza Media],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: 6a25f4b8-e688-4d11-801a-0eb8f338f340
+
+	measure 'P2 Confianza Baja Global' =
+			CALCULATE (
+			    [P2 Confianza Baja],
+			    REMOVEFILTERS (
+			        Dim_Categorias[IdCategoria],
+			        Dim_Categorias[Categoria],
+			        Dim_Categorias[Subcategoria]
+			    ),
+			    REMOVEFILTERS (
+			        Fact_Presupuestos[IdCategoria],
+			        Fact_Presupuestos[Categoria],
+			        Fact_Presupuestos[Subcategoria]
+			    )
+			)
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: 29a61be9-e28f-47f3-91bc-e517db939bd3
+
+	measure 'P2 Resumen Confianza Global' =
+			FORMAT ( [P2 Confianza Alta Global], "0" ) & " Alta · " &
+			FORMAT ( [P2 Confianza Media Global], "0" ) & " Media · " &
+			FORMAT ( [P2 Confianza Baja Global], "0" ) & " Baja"
+		displayFolder: 5. Planificador Próximo Mes\Confianza
+		lineageTag: 1ce66979-beaf-4ec8-a908-fbc2aabb122b
+
+	measure 'P2 Mensaje Ejecutivo Global' =
+			VAR Escenario = SELECTEDVALUE ( Fact_Presupuestos[Escenario], "REALISTIC" )
+			VAR MesPlan = [P2 Mes Plan Texto]
+			VAR Final = [P2 Presupuesto Final Global USD]
+			VAR Cambio = [P2 Cambio Presupuesto Global USD]
+			VAR Forecast = [P2 Forecast Próximo Mes Global USD]
+			VAR ExtraAgg =
+			    [P2 Presupuesto Actual Global USD] - [P2 Presupuesto Final Global USD]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    Escenario = "CURRENT",
+			        "Continuidad: para " & MesPlan & " el comportamiento proyectado sugiere $" & FORMAT ( Final, "#,0.00" ) & ".",
+			    Escenario = "AGGRESSIVE",
+			        "Escenario agresivo: presupuesto final $" & FORMAT ( Final, "#,0.00" ) & ", con ajuste de $" & FORMAT ( ABS ( ExtraAgg ), "#,0.00" ) & " frente al presupuesto actual.",
+			    "Para " & MesPlan & " se recomienda un presupuesto de $" & FORMAT ( Final, "#,0.00" ) & ". Representa " &
+			        IF ( Cambio >= 0, "un aumento de $", "una reducción de $" ) &
+			        FORMAT ( ABS ( Cambio ), "#,0.00" ) & " frente al presupuesto operativo actual. El forecast sin ajuste sería $" &
+			        FORMAT ( Forecast, "#,0.00" ) & "."
+			)
+		displayFolder: 5. Planificador Próximo Mes\Texto
+		lineageTag: 9c34ec56-4b94-494b-b15c-94a844131fbc
+
+	measure 'P2 Categoría Única Seleccionada' =
+			VAR CategoriasDim =
+			    DISTINCTCOUNT ( Dim_Categorias[IdCategoria] )
+			VAR CategoriasFact =
+			    DISTINCTCOUNT ( Fact_Presupuestos[IdCategoria] )
+			RETURN
+			IF ( CategoriasDim = 1 || CategoriasFact = 1, 1, 0 )
+		formatString: 0
+		displayFolder: 5. Planificador Próximo Mes\Simulación
+		lineageTag: 74efbf6f-cbba-4c37-8023-01ae81dc1430
+
+	column Value
+		formatString: 0
+		lineageTag: ebc78677-8c16-4b3f-a7e8-dafa34313128
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Medidas = calculated
+		mode: import
+		source =
+				
+				{ BLANK() }
+
+	annotation PBI_Id = 83781bb23d084cc28ee72ab00d87a831
+

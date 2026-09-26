@@ -1,0 +1,482 @@
+table _Medidas
+	lineageTag: 89fe0489-6811-4dc2-9eb2-69ba218f90b4
+
+	measure 'Monto USD' =
+			
+			SUM ( Fact_Movimientos[MontoUSD] )
+		displayFolder: 0. Generales
+		lineageTag: 783fba57-6396-4a66-a245-f84348a8a45a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Económico USD' =
+			
+			CALCULATE (
+			    [Monto USD],
+			    Fact_Movimientos[EsIngresoEconomico] = TRUE()
+			)
+		formatString: 0
+		displayFolder: 3. Ingresos
+		lineageTag: 27ba26d1-8f2b-4272-b30f-1e979d3026fc
+
+	measure 'Gasto Económico USD' =
+			
+			CALCULATE (
+			    [Monto USD],
+			    Fact_Movimientos[EsEgresoEconomico] = TRUE()
+			)
+		formatString: 0
+		displayFolder: 1. Gastos
+		lineageTag: e5bab63a-f098-4269-b817-bbd75bf58680
+
+	measure 'Gasto Personal USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsEgresoEconomico] = 1,
+			    Fact_Movimientos[EsPresupuestable] = 1
+			)
+		formatString: 0
+		displayFolder: 1. Gastos
+		lineageTag: 6ef39230-fdc9-444c-82dc-e9a8747cb3cc
+
+	measure 'Ingreso Personal USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		formatString: 0
+		displayFolder: 3. Ingresos
+		lineageTag: 1c27b2dd-b5e8-46fa-a449-439f5345a02b
+
+	measure 'Ahorro Real USD' =
+			
+			[Ingreso Personal USD]
+			    - [Gasto Personal USD]
+		formatString: 0
+		displayFolder: 4. Ahorros
+		lineageTag: c2184c6e-7d26-4616-a718-b75910a6e18a
+
+	measure 'Savings Rate' =
+			
+			DIVIDE (
+			    [Ahorro Real USD],
+			    [Ingreso Personal USD]
+			)
+		displayFolder: 0. Generales
+		lineageTag: f4022f11-cd29-4041-b94a-ddc4ce63b36e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Presupuesto USD' =
+			
+			VAR EscenarioSeleccionado =
+			    SELECTEDVALUE(
+			        Fact_Presupuestos[Escenario],
+			        "REALISTIC"
+			    )
+			RETURN
+			CALCULATE(
+			    SUM(Fact_Presupuestos[MontoPresupuestadoUSD]),
+			    REMOVEFILTERS(Fact_Presupuestos[Escenario]),
+			    Fact_Presupuestos[Escenario] = EscenarioSeleccionado
+			)
+		displayFolder: 2. Presupuestos
+		lineageTag: c5519cc0-0f39-4b28-87df-a186d0d3ba80
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Presupuesto Restante USD' =
+			
+			[Presupuesto USD]
+			    - [Gasto Personal USD]
+		displayFolder: 2. Presupuestos
+		lineageTag: 625504a3-e206-43d6-9d2b-b7e357d26b4a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Consumido' =
+			
+			DIVIDE (
+			    [Gasto Personal USD],
+			    [Presupuesto USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 65758d07-b73a-4d8a-bda7-0a51c9133cff
+
+	measure 'Gasto Actual USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[EsEgresoEconomico] = 1,
+			    Fact_Movimientos[EsPresupuestable] = 1
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Gastos
+		lineageTag: 6f5f452d-fc99-4357-931d-d7a773748e3e
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-US"}
+
+	measure 'Disponible USD' =
+			
+			[Presupuesto USD] - [Gasto Actual USD]]
+		displayFolder: 0. Generales
+		lineageTag: c7cb5aa8-6f3a-4a2e-8aca-6729a3b4d1ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Negocio USD' =
+			
+			CALCULATE(
+			    SUM(Fact_Movimientos[MontoUSD]),
+			    Fact_Movimientos[Dominio] = "NEGOCIO",
+			    Fact_Movimientos[EsEgresoEconomico] = 1
+			)
+		displayFolder: 1. Gastos
+		lineageTag: 000a1acc-d9d0-4dee-aeec-3fc2f4cafb07
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Salario Quincenal Mediano' =
+			
+			CALCULATE(
+			    MEDIAN(Fact_Movimientos[MontoUSD]),
+			
+			    REMOVEFILTERS(Fact_Movimientos),
+			    REMOVEFILTERS(Dim_Fecha),
+			    REMOVEFILTERS(Dim_Quincena),
+			    REMOVEFILTERS(Dim_Categorias),
+			
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[Categoria] = "Ingresos",
+			    Fact_Movimientos[Subcategoria] = "Salario",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: cd991756-7c59-4caa-9b83-f75ea86698ae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Sostenible Mensual' =
+			
+			[Salario Quincenal Mediano] * 2
+		displayFolder: 3. Ingresos
+		lineageTag: 717a8fee-941c-4f1a-9089-872b99fe7e1b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ahorro Objetivo USD' =
+			
+			[Ingreso Sostenible Mensual] - [Presupuesto USD]
+		displayFolder: 4. Ahorros
+		lineageTag: 7fbf8470-2b57-4f8d-853a-80b92881ede7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Savings Rate Objetivo' =
+			
+			DIVIDE(
+			    [Ahorro Objetivo USD],
+			    [Ingreso Sostenible Mensual]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 4. Ahorros
+		lineageTag: e18f0c78-a443-46fd-ba8b-1b6bdfdd246f
+
+	measure 'Disponible para Gastar USD' =
+			
+			[Presupuesto USD] - [Gasto Personal USD]
+		formatString: 0.00
+		displayFolder: 4. Ahorros
+		lineageTag: 3582957f-38e7-48f0-add5-318473436539
+
+	measure 'Presupuesto Quincenal USD' =
+			
+			SUM (
+			    Fact_Presupuestos_Quincenal[MontoPresupuestoQuincenalUSD]
+			)
+		displayFolder: 2. Presupuestos
+		lineageTag: f36a21e6-3f3c-4de3-8dda-094471790dd9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Quincenal USD' =
+			
+			[Gasto Personal USD]
+		displayFolder: 1. Gastos
+		lineageTag: 57860401-7bd5-4df3-ab11-76c14c59854a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Quincenal USD' =
+			
+			[Presupuesto Quincenal USD]
+			    - [Gasto Quincenal USD]
+		displayFolder: 0. Generales
+		lineageTag: a1e0db29-f53b-42bf-80af-1a73222a949e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Quincenal Consumido' =
+			
+			DIVIDE (
+			    [Gasto Quincenal USD],
+			    [Presupuesto Quincenal USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 0e786a5a-bd6c-4f09-b350-dbea3ef92458
+
+	measure 'Salario Cobrado Quincena USD' =
+			
+			CALCULATE (
+			    SUM ( Fact_Movimientos[MontoUSD] ),
+			    Fact_Movimientos[Dominio] = "PERSONAL",
+			    Fact_Movimientos[Categoria] = "Ingresos",
+			    Fact_Movimientos[Subcategoria] = "Salario",
+			    Fact_Movimientos[EsIngresoEconomico] = 1
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: 5f42366e-0b1d-445b-9f1d-a6d6ea0dcc03
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ingreso Sostenible Quincenal' =
+			
+			DIVIDE (
+			    [Ingreso Sostenible Mensual],
+			    2
+			)
+		displayFolder: 3. Ingresos
+		lineageTag: d1c40db3-54f9-4bec-8909-78c3b9f41a24
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ahorro Objetivo Quincenal USD' =
+			
+			[Ingreso Sostenible Quincenal]
+			    - [Presupuesto Quincenal USD]
+		displayFolder: 4. Ahorros
+		lineageTag: 8d128b04-96ad-49c0-8dca-73c63349cd68
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Savings Rate Objetivo Quincenal' =
+			
+			DIVIDE (
+			    [Ahorro Objetivo Quincenal USD],
+			    [Ingreso Sostenible Quincenal]
+			)
+		displayFolder: 4. Ahorros
+		lineageTag: f13227ca-7a7b-49b8-8790-76e2ddcde6ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Estado Cobro Quincena' =
+			
+			IF (
+			    [Salario Cobrado Quincena USD] > 0,
+			    "COBRADA",
+			    "PENDIENTE DE COBRO"
+			)
+		displayFolder: 0. Generales
+		lineageTag: 3636a718-b7e8-40a2-bd3f-ef8dc92b6cfa
+
+	measure 'Disponible Presupuesto Quincena USD' =
+			
+			[Presupuesto Quincenal USD]
+			    - [Gasto Quincenal USD]
+		displayFolder: 0. Generales
+		lineageTag: 8c05ca49-c500-4f33-89a0-5faa845d526a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Real Quincena USD' =
+			
+			VAR Cobrado =
+			    [Salario Cobrado Quincena USD]
+			VAR Gasto =
+			    [Gasto Quincenal USD]
+			VAR AhorroObjetivo =
+			    [Ahorro Objetivo Quincenal USD]
+			RETURN
+			IF (
+			    Cobrado <= 0,
+			    0,
+			    Cobrado - AhorroObjetivo - Gasto
+			)
+		displayFolder: 0. Generales
+		lineageTag: 1e412c9e-2d7e-448f-98b9-9123000e436c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Safe to Spend USD' =
+			VAR Cobrado = [Salario Cobrado Quincena USD]
+			VAR DisponibleQ = [Disponible Quincenal USD]
+			VAR DisponibleMes = [Disponible Mensual USD]
+			RETURN
+			IF(
+			    Cobrado <= 0,
+			    0,
+			    MAX(
+			        0,
+			        MIN(
+			            DisponibleQ,
+			            DisponibleMes
+			        )
+			    )
+			)
+		displayFolder: 0. Generales
+		lineageTag: ee41c590-80fe-41b0-b3cd-453bc2ae76ee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Gasto Mensual USD' =
+			
+			CALCULATE(
+			    [Gasto Personal USD],
+			    REMOVEFILTERS(Dim_Quincena)
+			)
+		displayFolder: 1. Gastos
+		lineageTag: d56ba4b2-b3e0-4653-9df6-f67fbdd49ca3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Disponible Mensual USD' =
+			
+			[Presupuesto USD] - [Gasto Mensual USD]
+		displayFolder: 0. Generales
+		lineageTag: 392c12e3-8303-402e-ac32-20ea7ff575be
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Presupuesto Mensual Consumido' =
+			
+			DIVIDE(
+			    [Gasto Mensual USD],
+			    [Presupuesto USD]
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: 2. Presupuestos
+		lineageTag: 537e0491-9217-4b46-a837-6af0a64fd7c4
+
+	measure 'Quincena Seleccionada Texto' = SELECTEDVALUE ( Dim_Quincena[Nombre], "quincena seleccionada" )
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 22289fd0-4e5a-4721-a056-ec286e738bb1
+
+	measure 'Texto Alerta Quincenal' =
+			VAR Estado = [Estado Presupuesto Quincenal]
+			VAR DisponibleQ = [Disponible Quincenal USD]
+			VAR QuincenaTxt = [Quincena Seleccionada Texto]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    Estado IN { "Excedido", "No presupuestado" }, "Alerta: " & QuincenaTxt & " excedida por $" & FORMAT ( ABS ( DisponibleQ ), "#,0.00" ),
+			    Estado = "Cerca", "Atención: " & QuincenaTxt & " cerca del límite",
+			    "En control: " & QuincenaTxt & " con margen de $" & FORMAT ( DisponibleQ, "#,0.00" )
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 304953f3-604a-4237-a731-670c00dbea8c
+
+	measure 'Texto Margen Mensual' = "Margen mensual restante: $" & FORMAT ( [Disponible Mensual USD], "#,0.00" )
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 644247bf-f744-4c0d-b1f1-d555787c3da1
+
+	measure 'Estado Presupuesto Quincenal' =
+			VAR Presupuesto = [Presupuesto Quincenal USD]
+			VAR Gasto = [Gasto Quincenal USD]
+			VAR Pct = [% Presupuesto Quincenal Consumido]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    COALESCE ( Presupuesto, 0 ) = 0 && COALESCE ( Gasto, 0 ) = 0, "Sin movimiento",
+			    COALESCE ( Presupuesto, 0 ) = 0 && Gasto > 0, "No presupuestado",
+			    Pct <= 0.9, "Dentro",
+			    Pct <= 1, "Cerca",
+			    "Excedido"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 597aab40-cae0-47ca-8bc0-560b9621521c
+
+	measure 'Estado Presupuesto Mensual' =
+			VAR Presupuesto = [Presupuesto USD]
+			VAR Gasto = [Gasto Mensual USD]
+			VAR Pct = [% Presupuesto Mensual Consumido]
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    COALESCE ( Presupuesto, 0 ) = 0 && COALESCE ( Gasto, 0 ) = 0, "Sin movimiento",
+			    COALESCE ( Presupuesto, 0 ) = 0 && Gasto > 0, "No presupuestado",
+			    Pct <= 0.9, "Dentro",
+			    Pct <= 1, "Cerca",
+			    "Excedido"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 17027a8b-5a06-460b-90d6-ee908a9f9f36
+
+	measure 'Color Estado Quincenal' =
+			SWITCH (
+			    [Estado Presupuesto Quincenal],
+			    "Dentro", "#22C58B",
+			    "Cerca", "#F4B740",
+			    "Excedido", "#FF5F67",
+			    "No presupuestado", "#FF5F67",
+			    "Sin movimiento", "#7F899F",
+			    "#AEB8D0"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 23256586-3bcf-4f44-88e0-eb7efab91057
+
+	measure 'Color Estado Mensual' =
+			SWITCH (
+			    [Estado Presupuesto Mensual],
+			    "Dentro", "#22C58B",
+			    "Cerca", "#F4B740",
+			    "Excedido", "#FF5F67",
+			    "No presupuestado", "#FF5F67",
+			    "Sin movimiento", "#7F899F",
+			    "#AEB8D0"
+			)
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 6c261a3d-0b61-4510-a55e-d37114323773
+
+	measure 'Exceso Mensual USD' =
+			MAX (
+			    0,
+			    [Gasto Mensual USD] - [Presupuesto USD]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 54252eb2-d9bf-4623-b722-9b7f6686179d
+
+	measure 'Margen Mensual Positivo USD' =
+			MAX (
+			    0,
+			    [Presupuesto USD] - [Gasto Mensual USD]
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 0. Generales\Página 1
+		lineageTag: 127868d7-0bc3-4d61-ae1d-ec2eb2fc12d7
+
+	column Value
+		formatString: 0
+		lineageTag: ebc78677-8c16-4b3f-a7e8-dafa34313128
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Medidas = calculated
+		mode: import
+		source =
+				
+				{ BLANK() }
+
+	annotation PBI_Id = 83781bb23d084cc28ee72ab00d87a831
+

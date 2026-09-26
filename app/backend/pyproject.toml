@@ -1,0 +1,24 @@
+[project]
+name = "analisis-financiero-backend"
+version = "0.1.0"
+description = "Backend local para Analisis Financiero"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.4.0",
+    "fastapi>=0.122.0",
+    "httpx>=0.28.0",
+    "numpy>=2.3.0",
+    "pandas>=2.3.0",
+    "pyarrow>=22.0.0",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

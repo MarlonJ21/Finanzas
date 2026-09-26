@@ -1,0 +1,15 @@
+MovimientoId,DescripcionExacta,Dominio,Categoria,Subcategoria,TitularGasto,NaturalezaFinanciera,EsPresupuestable,EsConsumoPersonal,EsIngresoEconomico,EsEgresoEconomico,EsNegocio,EsAhorro,EsPrestamo,EsDeuda,EsTransferencia,EsReembolso,MotivoOverride
+8cd8228dde7d98657c88bb7255bf57a9,Comisiones pago yummy,PERSONAL,Comisiones,Pago móvil,MARLON,COMISION,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+a1d71a245a306ad40d05d55d1662fce0,Pago yummy carpeta,PERSONAL,Trabajo / Trámites,Mensajería / Traslado de documentos,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+d1e7d841fc5b9794021fb4885e69aa77,Pago yummy franela de Spide-Man,PERSONAL,Movilidad,Envío / Mandado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+46fd6a32c62e5e8230cbb50af8d9b2ed,Pago yummy noche del cine,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+ad70ec9069423ed3aff9991ad1b6bb51,Yummy personal,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+05593c105d989d8e3ab939cd8354c795,Yummy personal a Farmatodo,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+ea1013959c3f97c3f8f11ebd78ec3233,Yummy personal,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+28019efe659036e941eb1cefd6d678bb,Pago yummy cambio de Microfonos,NEGOCIO,PremiadosVE,Logística postventa / Garantía,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0,Confirmación manual V1
+8da7d82765fe5101b03d4f20fdb39abb,Pago yummy personal,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+1295090af102f7021336e057a6af034e,Envío yummy Daka - Mrw,NEGOCIO,PremiadosVE,Traslado a transportista,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0,Confirmación manual V1
+7da5d045a6f4ab77d79d0fd5edf5eeb1,Pago Yummy F,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+cf928dde9626b335ab6bd4466ab8d391,Yummy MRW,NEGOCIO,PremiadosVE,Traslado a transportista,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0,Confirmación manual V1
+bcdff6c74fc5b5ceea839ddf65c550e1,Pago yummy Lara - MgHelmets,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1
+4c59351c91f41c600f2d3d5a2aea8a99,,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0,Confirmación manual V1 final

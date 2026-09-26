@@ -1,0 +1,33 @@
+﻿IdCategoria,TipoForecastOverride,Flexibilidad,EsEsencial,FactorRealistic,FactorAggressive,FloorUSD,CapUSD,Notas
+54635eebe66f,SPARSE,HIGH,0,0.85,0.65,0.0,,Alimentación / Comer fuera: Alimentacion flexible fuera del mercado esencial
+3278ef5ecc17,VARIABLE,HIGH,0,0.85,0.65,0.0,,Alimentación / Comida a domicilio: Gasto flexible de comida preparada
+2be100bef176,VARIABLE,MEDIUM,1,0.96,0.96,200.0,,Alimentación / Mercado / Hogar: Consumo esencial variable; piso prudente y reduccion moderada
+aa0d86fff83b,VARIABLE,HIGH,0,0.85,0.65,0.0,,Alimentación / Snacks / Antojos: Alimentacion flexible fuera del mercado esencial
+e44b00735c98,VARIABLE,LOW,1,0.95,0.9,0.0,,Comisiones / Bancarias: Comision transaccional recurrente de bajo monto
+cdeaa858d23e,VARIABLE,LOW,1,0.95,0.9,0.0,,Comisiones / Pago móvil: Comision transaccional recurrente de bajo monto
+628890685d73,SPARSE,HIGH,0,0.7,0.5,0.0,,Cuidado personal / Barbería / Estética: Gasto ocasional; evitar recurrencia artificial
+838f43099b97,DEBT,NONE,1,1.0,1.0,0.0,,Deuda / CASHEA / Cuota existente: Obligacion/deuda: no reducir por escenario
+867f66f96e27,DEBT,NONE,1,1.0,1.0,0.0,,Deuda / CASHEA / Nueva compra / Inicial: Obligacion/deuda: no reducir por escenario
+187086ab6ed2,VARIABLE,HIGH,0,0.8,0.6,0.0,,Gastos Anilet / Alimentación: Gasto compartido/familiar flexible
+90ed95be3e3a,SPARSE,HIGH,0,0.8,0.6,0.0,,Gastos Anilet / Cuidado personal: Gasto compartido/familiar flexible
+bb9aa44c26fa,VARIABLE,HIGH,0,0.8,0.6,0.0,,Gastos Anilet / Otros: Gasto compartido/familiar flexible
+09084abc7d9e,VARIABLE,HIGH,0,0.8,0.6,0.0,,Gastos Anilet / Salud: Gasto compartido/familiar flexible
+7ffa9252daaa,SPARSE,HIGH,0,0.8,0.6,0.0,,Gastos Anilet / Telecomunicaciones: Gasto compartido/familiar flexible
+ea13bd34de82,SPARSE,HIGH,0,0.7,0.0,0.0,,Moto / Reparación: Gasto ocasional; evitar recurrencia artificial
+57aa1b426750,SPARSE,HIGH,0,0.7,0.5,0.0,,Movilidad / Envío / Mandado personal: Movilidad ocasional no esencial
+0c4ed6ac46b7,VARIABLE,LOW,1,0.95,0.9,0.0,,Movilidad / Transporte público: Movilidad necesaria pero dependiente de frecuencia de traslados
+5d0a9aae4767,VARIABLE,LOW,1,0.95,0.9,0.0,,Movilidad / Traslado personal: Movilidad necesaria pero dependiente de frecuencia de traslados
+6f8244597d9a,VARIABLE,HIGH,0,0.8,0.5,0.0,,Ocio / Entretenimiento: Gasto flexible; no usar reglas historicas como floor
+aa17195d22a1,SPARSE,HIGH,0,0.8,0.5,0.0,,Ocio / Hotel / Alojamiento: Gasto flexible; no usar reglas historicas como floor
+d16f3184ca10,SPARSE,HIGH,0,0.6,0.5,0.0,,Salud / Consultas: Salud modelada como gasto eventual; no clasificar como fijo sin recurrencia
+04850e7d0477,SPARSE,MEDIUM,1,0.8,0.75,0.0,,Salud / Medicinas: Salud modelada como gasto eventual; no clasificar como fijo sin recurrencia
+90cdacd86983,SPARSE,HIGH,0,0.6,0.5,0.0,,Salud / Otros Salud: Salud modelada como gasto eventual; no clasificar como fijo sin recurrencia
+37808d2d38fd,FIXED,NONE,1,1.0,1.0,0.0,,Suscripciones / Herramientas / CapCut: Suscripcion recurrente: mantener costo esperado
+7824bf9385e0,FIXED,NONE,1,1.0,1.0,0.0,,Suscripciones / Herramientas / ChatGPT: Suscripcion recurrente: mantener costo esperado
+e1859a227ab4,FIXED,NONE,1,1.0,1.0,0.0,,Suscripciones / Herramientas / RIAL: Suscripcion recurrente: mantener costo esperado
+1c88ad89731f,SPARSE,HIGH,0,0.7,0.0,0.0,,Tecnología / Equipos: Gasto ocasional; evitar recurrencia artificial
+6ac5147cff31,FIXED,NONE,1,1.0,1.0,0.0,,Telecomunicaciones / Internet: Servicio recurrente: mantener costo esperado
+b17e7d476147,FIXED,NONE,1,1.0,1.0,0.0,,Telecomunicaciones / Telefonía: Servicio recurrente: mantener costo esperado
+665b6fb63cde,SPARSE,MEDIUM,0,0.7,0.6,0.0,,Trabajo / Trámites / Documentos / Gestiones: Gasto administrativo ocasional
+3b87de5f1ff5,SPARSE,MEDIUM,0,0.7,0.6,0.0,,Trabajo / Trámites / Mensajería / Traslado de documentos: Gasto administrativo ocasional
+875fba7cfcd9,SPARSE,HIGH,0,0.7,0.0,0.0,,Vestimenta / Ropa: Gasto ocasional; evitar recurrencia artificial

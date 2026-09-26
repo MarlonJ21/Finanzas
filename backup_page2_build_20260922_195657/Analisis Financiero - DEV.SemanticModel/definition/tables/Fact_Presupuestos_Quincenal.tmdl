@@ -1,0 +1,90 @@
+table Fact_Presupuestos_Quincenal
+	lineageTag: e977953a-bc86-4f4e-a4c0-97a4d852f79b
+
+	column Escenario
+		dataType: string
+		lineageTag: 24fd19fa-f0a9-41cc-9894-136ccdb1e043
+		summarizeBy: none
+		sourceColumn: Escenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column IdCategoria
+		dataType: string
+		lineageTag: 3d04acb0-5f0e-474a-9d6c-fce6d8d26d1b
+		summarizeBy: none
+		sourceColumn: IdCategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dominio
+		dataType: string
+		lineageTag: d16dfbc2-9f62-4e12-8507-cee2fbc00a20
+		summarizeBy: none
+		sourceColumn: Dominio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 851331dc-66fe-4d9f-a92b-101567091a99
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategoria
+		dataType: string
+		lineageTag: 7aea9196-9f40-493b-9fe8-5a0d39c7c485
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column TitularGasto
+		dataType: string
+		lineageTag: 28b1892a-7446-4bd1-9222-5673be80eb19
+		summarizeBy: none
+		sourceColumn: TitularGasto
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quincena
+		dataType: int64
+		formatString: 0
+		lineageTag: 346fbe0b-8521-40f6-a687-be58205eb966
+		summarizeBy: none
+		sourceColumn: Quincena
+
+		annotation SummarizationSetBy = Automatic
+
+	column MontoPresupuestoQuincenalUSD
+		dataType: double
+		lineageTag: 253e72c8-0030-4bc2-8cd0-cad297200529
+		summarizeBy: sum
+		sourceColumn: MontoPresupuestoQuincenalUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MetodoDistribucion
+		dataType: string
+		lineageTag: f61dca4b-c22b-454f-9bd9-8bd99d7bff4a
+		summarizeBy: none
+		sourceColumn: MetodoDistribucion
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fact_Presupuestos_Quincenal = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents("C:\Users\m.ortega\Documents\M.ORTEGA\m.ortega\fin per\DWH\output\presupuesto_quincenal.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])
+				in
+				    Origen
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,32 @@
+relationship daaba905-e08e-47b8-76aa-9dca3e1fcff9
+	fromColumn: Fact_Presupuestos.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship a6c8dc7c-13b4-2b75-0b8a-2cc50233c4a6
+	fromColumn: Fact_Movimientos.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship 0b58214f-06b6-e2d2-04d7-2e26e73c47f0
+	fromColumn: Fact_Movimientos.FechaKey
+	toColumn: Dim_Fecha.FechaKey
+
+relationship AutoDetected_790f4c80-02a9-4a1e-828a-ec77a30cb595
+	fromColumn: Fact_Presupuestos_Quincenal.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship 2618c287-6e64-d4ec-57a5-3549b4790440
+	fromColumn: Fact_Presupuestos.Escenario
+	toColumn: Dim_Escenario.Escenario
+
+relationship 0c0f9097-ad95-4bc1-0041-ad9b7de7d906
+	fromColumn: Fact_Presupuestos_Quincenal.Escenario
+	toColumn: Dim_Escenario.Escenario
+
+relationship a63718aa-cc95-5282-d191-515a303fbac5
+	fromColumn: Fact_Movimientos.Quincena
+	toColumn: Dim_Quincena.Quincena
+
+relationship b6cfdde7-e756-cd03-f05a-406f1df4040d
+	fromColumn: Fact_Presupuestos_Quincenal.Quincena
+	toColumn: Dim_Quincena.Quincena
+

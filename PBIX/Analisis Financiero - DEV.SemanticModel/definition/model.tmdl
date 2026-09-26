@@ -1,0 +1,31 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-VE
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["Dim_Categorias","Fact_Movimientos","Fact_Presupuestos","Dim_Fecha","Fact_Presupuestos_Quincenal"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table Dim_Categorias
+ref table Fact_Movimientos
+ref table Fact_Presupuestos
+ref table _Medidas
+ref table Dim_Fecha
+ref table Fact_Presupuestos_Quincenal
+ref table Dim_Escenario
+ref table Dim_Quincena
+ref table 'Ajuste Simulado USD'
+ref table DateTableTemplate_2d58107a-2555-4117-9411-39cd1f309ddd
+ref table LocalDateTable_86d7cdee-09df-477c-b75d-2ffc38f77ea8
+ref table LocalDateTable_096a7437-5d46-4418-9479-23801c4acd0b
+ref table LocalDateTable_2e6856da-2b78-442b-852d-a2ed301e68cc
+
+ref cultureInfo es-ES
+

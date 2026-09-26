@@ -1,0 +1,137 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 578.57142857142856,
+        "y": 74.999999999999986
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 643.3457667162603,
+            "y": 0
+          },
+          "nodeIndex": "Dim_Categorias",
+          "nodeLineageTag": "b97b765a-447f-4b57-ba54-64dd2e73855e",
+          "size": {
+            "height": 291.8621991990629,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 1520.2034469147397,
+            "y": 0
+          },
+          "nodeIndex": "Fact_Movimientos",
+          "nodeLineageTag": "a2002c41-49a4-4a1a-864a-4a4dc2b83db5",
+          "size": {
+            "height": 1000,
+            "width": 244.460842679365
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 641.26847262375156,
+            "y": 465.71855114555859
+          },
+          "nodeIndex": "Fact_Presupuestos",
+          "nodeLineageTag": "7d59043b-0efd-467d-9572-cd24b46db763",
+          "size": {
+            "height": 270.72727272727275,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 929.32666446182043,
+            "y": 262.05309159016053
+          },
+          "nodeIndex": "_Medidas",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1162.9349742909881,
+            "y": 350
+          },
+          "nodeIndex": "Dim_Fecha",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 222.86959025698891,
+            "y": 5.49125776221198
+          },
+          "nodeIndex": "Fact_Presupuestos_Quincenal",
+          "nodeLineageTag": "e977953a-bc86-4f4e-a4c0-97a4d852f79b",
+          "size": {
+            "height": 296,
+            "width": 296.56407845960075
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 148.77688064689573,
+            "y": 382.35372146011264
+          },
+          "nodeIndex": "Dim_Escenario",
+          "nodeLineageTag": "d7932a88-19bd-4039-a7af-99bce3d03e7e",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1072.3307671509981,
+            "y": 0
+          },
+          "nodeIndex": "Dim_Quincena",
+          "nodeLineageTag": "a66602c6-550f-4170-9bd1-7877109237e0",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1665.887408947209,
+            "y": 400
+          },
+          "nodeIndex": "Ajuste Simulado USD",
+          "nodeLineageTag": "8296e453-9740-4248-91c0-39ed089e0825",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 56.000000000000007,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

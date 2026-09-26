@@ -1,0 +1,39 @@
+﻿MovimientoId,Fecha,DescripcionOriginal,TipoRial,Cuenta,MontoOriginal,MonedaOriginal,MontoUSD,CategoriaRial,DuplicateType,DuplicateGroup
+48a454badb5e8edac92d8286d3bdffe8,2026-07-18,Recarga Movistar,Egreso,BNC,300.0,VES,0.41,Casa,POSSIBLE_DUPLICATE,1
+bbde3904e88acbc1ea70434db24269aa,2026-07-18,Pasaje santa rosa,Egreso,BNC,300.0,VES,0.41,Transporte,POSSIBLE_DUPLICATE,1
+e528a7ddfe54d8fd85fe288389ffef81,2026-07-25,Compra caramelo menta,Egreso,BNC,220.0,VES,0.3,Gastos Mayores,POSSIBLE_DUPLICATE,2
+b621843eb82e7d8cdb80e914f607e5e4,2026-07-25,Pago examen Anilet universidad,Egreso,BNC,220.0,VES,0.3,Gastos Anilet,POSSIBLE_DUPLICATE,2
+3c75fae8e76f5c3760e2f0fa0f7aaf70,2026-07-31,Recarga Digitel anilet,Egreso,BNC,300.0,VES,0.4,Gastos Anilet,POSSIBLE_DUPLICATE,3
+dc5cb35c27c03095365231ff9e0f30e8,2026-07-31,Recarga Movistar,Egreso,BNC,300.0,VES,0.4,Casa,POSSIBLE_DUPLICATE,3
+3aa5fa6ec6c893d00cacf4efb095d5d1,2026-08-01,Pasaje,Egreso,Efectivo,150.0,VES,0.2,Transporte,POSSIBLE_DUPLICATE,4
+82a33ee5b94cfcbfdfaf1662468edd72,2026-08-01,Pasaje camioneta,Egreso,Efectivo,150.0,VES,0.2,Transporte,POSSIBLE_DUPLICATE,4
+ec43e93db973d61d3f618cc7f27771ef,2026-08-15,Comisión por transferencia,Egreso,BNC,200.0,VES,0.26,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+7206bde4df9f15c36bf92a9518387fa6,2026-08-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+2d398a047deeb782acf90e6b1ab30679,2026-08-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+eb735ce9115e59405adf599fb098397a,2026-08-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+45f0b1125280f99e71556ca3d8825187,2026-08-15,Shorts. Cashea Cuota 1/3,Egreso,BNC,5794.08,VES,7.5,Vestimenta,POSSIBLE_DUPLICATE,7
+060eb96143a3ab6beeae16a7b65008db,2026-08-15,Shorts. Cashea Cuota 2/3,Egreso,BNC,5794.08,VES,7.5,Vestimenta,POSSIBLE_DUPLICATE,7
+eb1da0be19e866437ad2002b7576e415,2026-08-15,Pasaje metropolis - Casa,Egreso,Efectivo,200.0,VES,0.26,Casa,POSSIBLE_DUPLICATE,6
+8c3477c3a1b50afa9c8de236ae22e6a0,2026-08-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+8ae9948bc659057883c01f290b59806c,2026-08-21,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,8
+dec717c120a67b1769439122f91b11de,2026-08-21,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,8
+45058b68e14db6c1bb2f365031a51f51,2026-08-21,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,8
+a53032eee31d59e86f05170c966959f4,2026-08-29,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,EXACT_DUPLICATE,9
+a53032eee31d59e86f05170c966959f4,2026-08-29,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,EXACT_DUPLICATE,9
+6835c65aea8a5295b7467b08257211d3,2026-08-29,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,9
+9581db7d3ef0c696969e076e52d41216,2026-08-31,Venta kit dual premiadosVe,Ingreso,BNC,28000.0,VES,35.22,Ventas,POSSIBLE_DUPLICATE,11
+24cd6609e0408fcbff9273bdbc72b637,2026-08-31,Venta kit completo PremiadosVe,Ingreso,BNC,28000.0,VES,35.22,Ventas,POSSIBLE_DUPLICATE,11
+8567dc31bf9920e1ef73df86c50bc917,2026-08-31,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,10
+b94403f8525eedfc77b7568f77a4bd0f,2026-08-31,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,10
+c1a24e51ff442f27bb4630dcb27a9a42,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,12
+a09542e9944d308c45e72257c538525c,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,12
+2386b4b4289053ba56f8a3131d2b45c7,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,12
+a6d5bde8b95a4c4b16f9ece804ef15b0,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,13
+23e44019aee6547b64a5c6f8cfb80711,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,13
+4c9b510959e2f73ad6a465bc3945097a,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,13
+21e594e304db823abfc8e4e5c9f9b8c5,2026-09-08,Moto. Francisco Cordova Cuota 1/2,Egreso,Efectivo,27.5,USD,27.5,Pago de deuda,POSSIBLE_DUPLICATE,14
+41a485ca165a3eb917c679b8ab50aa0b,2026-09-08,Moto. Francisco Cordova Cuota 2/2,Egreso,Efectivo,27.5,USD,27.5,Pago de deuda,POSSIBLE_DUPLICATE,14
+be6e1f818f9ddfe5f77737f5a4583817,2026-09-13,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,15
+30cab8ae54f1de149c8229a73722d507,2026-09-13,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,15
+903a55c1aa620158bcc1901308ced0bb,2026-09-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,16
+c17c84dac7fe830771cd5dadb775946e,2026-09-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,16

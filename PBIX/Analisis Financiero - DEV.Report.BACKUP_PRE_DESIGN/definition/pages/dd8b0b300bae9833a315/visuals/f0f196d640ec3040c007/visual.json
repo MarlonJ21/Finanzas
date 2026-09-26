@@ -1,0 +1,150 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f0f196d640ec3040c007",
+  "position": {
+    "x": 847.36842105263156,
+    "y": 342.10526315789474,
+    "z": 5,
+    "height": 580,
+    "width": 1046.6666666666667,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              },
+              "queryRef": "Dim_Categorias.Categoria",
+              "nativeQueryRef": "Categoria",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Subcategoria"
+                }
+              },
+              "queryRef": "Dim_Categorias.Subcategoria",
+              "nativeQueryRef": "Subcategoria",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gasto Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Gasto Quincenal USD",
+              "nativeQueryRef": "Gasto Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Presupuesto Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Presupuesto Quincenal USD",
+              "nativeQueryRef": "Presupuesto Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Disponible Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Disponible Quincenal USD",
+              "nativeQueryRef": "Disponible Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "% Presupuesto Quincenal Consumido"
+                }
+              },
+              "queryRef": "_Medidas.% Presupuesto Quincenal Consumido",
+              "nativeQueryRef": "% Presupuesto Quincenal Consumido"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Dim_Categorias.Categoria"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Dim_Categorias.Subcategoria"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "drillFilterOtherVisuals": true
+  }
+}

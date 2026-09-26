@@ -1,0 +1,24 @@
+table Dim_Escenario
+	lineageTag: d7932a88-19bd-4039-a7af-99bce3d03e7e
+
+	column Escenario
+		lineageTag: ec50bf66-f74b-4f1d-a4e8-c0b9f2d49755
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Escenario]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Escenario = calculated
+		mode: import
+		source =
+				
+				DISTINCT (
+				    SELECTCOLUMNS (
+				        Fact_Presupuestos,
+				        "Escenario", Fact_Presupuestos[Escenario]
+				    )
+				)
+
+	annotation PBI_Id = 99a5a2ffb88b48d7818cee09847e8c43
+

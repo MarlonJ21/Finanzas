@@ -1,0 +1,7 @@
+﻿MovimientoId,FechaKey,Fecha,Hora,TipoRial,CategoriaRial,SubcategoriaRial,DescripcionOriginal,Cuenta,MonedaOriginal,MontoOriginal,MontoUSD,IdCategoria,Dominio,Categoria,Subcategoria,TitularGasto,NaturalezaFinanciera
+2e4f139590e6c44c16e159d8fbc0bd58,20260920,2026-09-20,06:30,Egreso,Transporte,Taxis,Yummy Santa Rosa Ahorcado,BNC,VES,2610.0,3.07,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED
+bdc02b88e47e727dff51d3dc6303209f,20260920,2026-09-20,08:30,Egreso,Alimentación,Panes y Postres,Panes campesinos Honda,BNC,VES,1699.12,2.0,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED
+39112795529df703ee32a4f587d2a5fe,20260922,2026-09-22,09:30,Egreso,Mascotas,Veterinario,Consulta veterinaria de Bruno,BNC,VES,14700.0,17.25,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED
+3bfa8ba1ac65a512729ced5a2ce4464d,20260922,2026-09-22,09:35,Egreso,Mascotas,Veterinario,Pago adicional veterinario y medicamentos,BNC,VES,2000.0,2.35,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED
+4726dd9c83ab1254b23b3c1b2ee868bc,20260922,2026-09-22,18:30,Egreso,Alimentación,Panes y Postres,Panes campesinos,BNC,VES,1100.0,1.29,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED
+d3f38c85f4be307207a88806b1faeea3,20260923,2026-09-23,18:30,Egreso,Casa,Productos de Limpieza,Compra de Jabón en polvo,BNC,VES,630.0,0.74,5a5e90145880,CONTROL,Pendiente clasificar,Revisión manual,NO_APLICA,UNCLASSIFIED

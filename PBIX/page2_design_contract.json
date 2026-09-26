@@ -1,0 +1,624 @@
+{
+  "spec_version": "1.0",
+  "purpose": "Machine-readable visual contract for Power BI page 'Planificador Próximo Mes'",
+  "diagnosis": {
+    "source": "PBIX.zip inspected",
+    "finding": "The current PBIR already uses the requested 1600x900 canvas and most major X/Y/Width/Height values already match the blueprint. The main mismatch is formatting inside visuals, especially cardVisual objects: many KPI cards define background/border/layout but do not explicitly define label/value typography, padding, alignment, or callout-area formatting. Power BI therefore renders defaults.",
+    "implication": "Do not spend another pass mainly moving visuals. Enforce visual-level formatting properties and replace any visual that cannot match the contract."
+  },
+  "target_page": {
+    "name": "planificador_proximo_mes",
+    "displayName": "Planificador Próximo Mes",
+    "width": 1600,
+    "height": 900,
+    "background": "#08152E",
+    "displayOption": "FitToPage"
+  },
+  "hard_rules": {
+    "treat_as_contract_not_inspiration": true,
+    "coordinate_tolerance_px": 4,
+    "font_tolerance_pt": 1,
+    "no_auto_layout": true,
+    "no_resize_to_content": true,
+    "no_wrap_kpi_values": true,
+    "no_default_powerbi_white_visuals": true,
+    "no_numbered_blue_annotations": true,
+    "do_not_modify_page1": true,
+    "do_not_modify_forecast_logic": true,
+    "do_not_modify_fact_presupuestos": true,
+    "do_not_modify_relationships": true,
+    "preserve_global_kpi_filter_protection": true,
+    "if_native_visual_cannot_match": "replace_or_rebuild_visual_instead_of_keeping_default_format"
+  },
+  "palette": {
+    "page": "#08152E",
+    "panel": "#0D1D3A",
+    "panel_elevated": "#112445",
+    "panel_header": "#102240",
+    "table_header": "#162B50",
+    "border": "#27446C",
+    "gridline": "#203A63",
+    "text_primary": "#F5F7FF",
+    "text_secondary": "#AEB9D0",
+    "cyan": "#20D7E8",
+    "blue": "#29B6F6",
+    "violet": "#C26CFF",
+    "green": "#33E6A4",
+    "yellow": "#F5C542",
+    "red": "#FF5E67",
+    "gray": "#78859E"
+  },
+  "typography": {
+    "font_family": "Segoe UI",
+    "page_title_pt": 26,
+    "page_subtitle_pt": 11,
+    "context_label_pt": 9,
+    "context_value_pt": 12,
+    "kpi_label_pt": 10,
+    "kpi_value_pt": 26,
+    "kpi_secondary_pt": 9,
+    "saving_pct_pt": 19,
+    "panel_title_pt": 14,
+    "panel_subtitle_pt": 9,
+    "matrix_header_pt": 9,
+    "matrix_body_pt": 9,
+    "matrix_total_pt": 10,
+    "confidence_pt": 9,
+    "body_pt": 10
+  },
+  "global_style": {
+    "panel_border_width_px": 1,
+    "panel_radius_px": 10,
+    "shadow": false,
+    "glow": false,
+    "outer_margin_px": 30,
+    "panel_gap_px": 10,
+    "inner_padding_px": 14
+  },
+  "visuals": {
+    "p2_header_panel": {
+      "type": "textbox/background-panel",
+      "bounds": {
+        "x": 30,
+        "y": 8,
+        "width": 1540,
+        "height": 70
+      },
+      "style": {
+        "background": "#102240",
+        "border": "#27446C",
+        "radius": 10,
+        "text": null
+      }
+    },
+    "p2_title": {
+      "type": "textbox",
+      "bounds": {
+        "x": 45,
+        "y": 15,
+        "width": 800,
+        "height": 32
+      },
+      "text": "Planificador Próximo Mes",
+      "style": {
+        "font_family": "Segoe UI",
+        "font_size_pt": 26,
+        "font_weight": 600,
+        "color": "#F5F7FF",
+        "background": "transparent"
+      }
+    },
+    "p2_subtitle": {
+      "type": "dynamic_text/card_or_text",
+      "bounds": {
+        "x": 45,
+        "y": 48,
+        "width": 800,
+        "height": 20
+      },
+      "style": {
+        "font_size_pt": 11,
+        "color": "#AEB9D0",
+        "background": "transparent",
+        "padding_px": 0,
+        "label_visible": false
+      }
+    },
+    "p2_header_context": {
+      "type": "background/context-strip",
+      "bounds": {
+        "x": 970,
+        "y": 10,
+        "width": 600,
+        "height": 65
+      },
+      "style": {
+        "background": "#102240",
+        "border": "#27446C",
+        "radius": 10
+      }
+    },
+    "p2_lbl_mesplan": {
+      "type": "textbox",
+      "bounds": {
+        "x": 990,
+        "y": 20,
+        "width": 110,
+        "height": 16
+      },
+      "text": "MES PLAN",
+      "style": {
+        "font_size_pt": 9,
+        "color": "#AEB9D0",
+        "font_weight": 400
+      }
+    },
+    "p2_mes_plan": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 990,
+        "y": 39,
+        "width": 140,
+        "height": 26
+      },
+      "style": {
+        "value_font_size_pt": 12,
+        "value_color": "#F5F7FF",
+        "value_weight": 600,
+        "label_visible": false,
+        "padding_px": 0,
+        "callout_background": "transparent"
+      }
+    },
+    "p2_lbl_escenario": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1160,
+        "y": 20,
+        "width": 120,
+        "height": 16
+      },
+      "text": "ESCENARIO",
+      "style": {
+        "font_size_pt": 9,
+        "color": "#AEB9D0"
+      }
+    },
+    "p2_slicer_escenario": {
+      "type": "slicer",
+      "bounds": {
+        "x": 1160,
+        "y": 39,
+        "width": 145,
+        "height": 28
+      },
+      "style": {
+        "mode": "Dropdown",
+        "font_size_pt": 11,
+        "font_color": "#F5F7FF",
+        "background": "#102240",
+        "border": "#C26CFF",
+        "radius": 6,
+        "single_select": true
+      }
+    },
+    "p2_lbl_estado": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1330,
+        "y": 20,
+        "width": 90,
+        "height": 16
+      },
+      "text": "ESTADO",
+      "style": {
+        "font_size_pt": 9,
+        "color": "#AEB9D0"
+      }
+    },
+    "p2_estado": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 1330,
+        "y": 39,
+        "width": 95,
+        "height": 26
+      },
+      "style": {
+        "value_font_size_pt": 12,
+        "value_color": "#F5F7FF",
+        "value_weight": 600,
+        "label_visible": false,
+        "padding_px": 0
+      }
+    },
+    "p2_datos_hasta": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1450,
+        "y": 22,
+        "width": 105,
+        "height": 42
+      },
+      "style": {
+        "font_size_pt": 9,
+        "color": "#AEB9D0",
+        "horizontal_alignment": "left"
+      }
+    },
+    "p2_kpi_actual": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 30,
+        "y": 88,
+        "width": 295,
+        "height": 88
+      },
+      "style": {
+        "background": "#112445",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 8,
+        "label": "Presupuesto actual",
+        "label_font_size_pt": 10,
+        "label_color": "#DDE4F3",
+        "value_font_size_pt": 26,
+        "value_color": "#F5F7FF",
+        "value_weight": 700,
+        "display_units": "none",
+        "decimal_places": 2
+      }
+    },
+    "p2_kpi_forecast": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 332,
+        "y": 88,
+        "width": 300,
+        "height": 88
+      },
+      "style": {
+        "background": "#112445",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 8,
+        "label": "Forecast próximo mes",
+        "label_font_size_pt": 10,
+        "label_color": "#DDE4F3",
+        "value_font_size_pt": 26,
+        "value_color": "#20D7E8",
+        "value_weight": 700,
+        "display_units": "none",
+        "decimal_places": 2
+      }
+    },
+    "p2_kpi_sugerido": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 639,
+        "y": 88,
+        "width": 285,
+        "height": 88
+      },
+      "style": {
+        "background": "#112445",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 8,
+        "label": "Presupuesto sugerido",
+        "label_font_size_pt": 10,
+        "label_color": "#DDE4F3",
+        "value_font_size_pt": 26,
+        "value_color": "#C26CFF",
+        "value_weight": 700,
+        "display_units": "none",
+        "decimal_places": 2
+      }
+    },
+    "p2_kpi_final": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 931,
+        "y": 88,
+        "width": 280,
+        "height": 88
+      },
+      "style": {
+        "background": "#112445",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 8,
+        "label": "Presupuesto final",
+        "label_font_size_pt": 10,
+        "label_color": "#DDE4F3",
+        "value_font_size_pt": 26,
+        "value_color": "#F5F7FF",
+        "value_weight": 700,
+        "display_units": "none",
+        "decimal_places": 2
+      }
+    },
+    "p2_kpi_ahorro": {
+      "type": "cardVisual",
+      "bounds": {
+        "x": 1218,
+        "y": 88,
+        "width": 352,
+        "height": 88
+      },
+      "style": {
+        "background": "#112445",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 8,
+        "label": "Ahorro esperado",
+        "label_font_size_pt": 10,
+        "label_color": "#DDE4F3",
+        "value_font_size_pt": 26,
+        "value_color": "#33E6A4",
+        "value_weight": 700,
+        "secondary_font_size_pt": 19,
+        "secondary_color": "#33E6A4",
+        "display_units": "none",
+        "decimal_places": 2
+      }
+    },
+    "p2_msg_ejecutivo": {
+      "type": "cardVisual/dynamic-text",
+      "bounds": {
+        "x": 30,
+        "y": 182,
+        "width": 1540,
+        "height": 45
+      },
+      "style": {
+        "background": "#102240",
+        "border": "#27446C",
+        "radius": 8,
+        "padding_px": 10,
+        "font_size_pt": 10,
+        "color": "#F5F7FF",
+        "label_visible": false
+      }
+    },
+    "p2_matrix_panel": {
+      "type": "background-panel",
+      "bounds": {
+        "x": 30,
+        "y": 238,
+        "width": 1130,
+        "height": 445
+      },
+      "style": {
+        "background": "#0D1D3A",
+        "border": "#27446C",
+        "radius": 10
+      }
+    },
+    "p2_matrix_title": {
+      "type": "textbox",
+      "bounds": {
+        "x": 50,
+        "y": 248,
+        "width": 420,
+        "height": 20
+      },
+      "text": "Plan por categoría",
+      "style": {
+        "font_size_pt": 14,
+        "font_weight": 600,
+        "color": "#F5F7FF"
+      }
+    },
+    "p2_matrix_subtitle": {
+      "type": "textbox",
+      "bounds": {
+        "x": 50,
+        "y": 271,
+        "width": 520,
+        "height": 16
+      },
+      "text": "Actual → proyección → recomendación → decisión",
+      "style": {
+        "font_size_pt": 9,
+        "color": "#AEB9D0"
+      }
+    },
+    "p2_matrix_plan": {
+      "type": "pivotTable",
+      "bounds": {
+        "x": 46,
+        "y": 292,
+        "width": 1098,
+        "height": 377
+      },
+      "style": {
+        "background": "#0D1D3A",
+        "header_background": "#162B50",
+        "header_color": "#F5F7FF",
+        "header_font_size_pt": 9,
+        "body_color": "#F5F7FF",
+        "body_font_size_pt": 9,
+        "row_header_font_size_pt": 9,
+        "total_font_size_pt": 10,
+        "grid_color": "#203A63",
+        "vertical_grid": false,
+        "horizontal_grid": "subtle",
+        "row_padding_px": 2,
+        "forecast_color": "#20D7E8",
+        "suggested_color": "#C26CFF",
+        "final_color": "#F5F7FF",
+        "confidence_high": "#33E6A4",
+        "confidence_medium": "#F5C542",
+        "confidence_low": "#FF5E67"
+      },
+      "visible_columns": [
+        "Categoría / Subcategoría",
+        "Actual",
+        "MTD",
+        "Proy. cierre",
+        "Forecast",
+        "Sugerido",
+        "Manual",
+        "Final",
+        "Confianza"
+      ]
+    },
+    "p2_explain_numbers": {
+      "type": "cardVisual/inspector",
+      "bounds": {
+        "x": 1170,
+        "y": 238,
+        "width": 400,
+        "height": 445
+      },
+      "style": {
+        "background": "#0D1D3A",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 16,
+        "empty_state_centered": true,
+        "empty_state_title_pt": 12,
+        "empty_state_body_pt": 10
+      }
+    },
+    "p2_explain_title": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1190,
+        "y": 252,
+        "width": 260,
+        "height": 20
+      },
+      "text": "Detalle de categoría",
+      "style": {
+        "font_size_pt": 14,
+        "font_weight": 600,
+        "color": "#F5F7FF"
+      }
+    },
+    "p2_slicer_ajuste": {
+      "type": "slicer",
+      "bounds": {
+        "x": 1195,
+        "y": 626,
+        "width": 350,
+        "height": 38
+      },
+      "style": {
+        "mode": "Between",
+        "font_size_pt": 9,
+        "font_color": "#F5F7FF",
+        "background": "#102240",
+        "border": "#C26CFF",
+        "radius": 6
+      }
+    },
+    "p2_chart_delta": {
+      "type": "clusteredBarChart",
+      "bounds": {
+        "x": 30,
+        "y": 695,
+        "width": 1300,
+        "height": 190
+      },
+      "style": {
+        "background": "#0D1D3A",
+        "border": "#27446C",
+        "radius": 10,
+        "category_font_size_pt": 9,
+        "label_font_size_pt": 9,
+        "label_color": "#F5F7FF",
+        "positive_color": "#FF5E67",
+        "negative_color": "#33E6A4",
+        "zero_color": "#78859E",
+        "show_value_axis": false,
+        "show_data_labels": true,
+        "grid_color": "#203A63"
+      }
+    },
+    "p2_delta_title": {
+      "type": "textbox",
+      "bounds": {
+        "x": 50,
+        "y": 708,
+        "width": 430,
+        "height": 35
+      },
+      "text": "Dónde cambia tu presupuesto",
+      "style": {
+        "font_size_pt": 14,
+        "font_weight": 600,
+        "color": "#F5F7FF",
+        "subtitle_font_size_pt": 9
+      }
+    },
+    "p2_conf_card": {
+      "type": "cardVisual/panel",
+      "bounds": {
+        "x": 1340,
+        "y": 695,
+        "width": 230,
+        "height": 190
+      },
+      "style": {
+        "background": "#0D1D3A",
+        "border": "#27446C",
+        "radius": 10,
+        "padding_px": 14
+      }
+    },
+    "p2_conf_title": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1356,
+        "y": 710,
+        "width": 190,
+        "height": 22
+      },
+      "text": "Confianza del modelo",
+      "style": {
+        "font_size_pt": 14,
+        "font_weight": 600,
+        "color": "#F5F7FF"
+      }
+    },
+    "p2_conf_legend": {
+      "type": "textbox",
+      "bounds": {
+        "x": 1356,
+        "y": 738,
+        "width": 180,
+        "height": 74
+      },
+      "style": {
+        "subtitle_font_size_pt": 9,
+        "item_font_size_pt": 10.5,
+        "high_color": "#33E6A4",
+        "medium_color": "#F5C542",
+        "low_color": "#FF5E67"
+      }
+    }
+  },
+  "implementation_requirements": {
+    "critical": [
+      "For cardVisual, set typography/padding in visual.objects, not only container background/border.",
+      "Do not leave KPI cards with only visualContainerObjects formatting.",
+      "Disable or reduce default card padding; target 8px or less.",
+      "Explicitly set value font, label font, display units and decimal places.",
+      "If the existing cardVisual cannot reproduce the contract cleanly, rebuild that visual rather than preserving default formatting.",
+      "After writing, reopen the actual saved visual.json and verify explicit visual-level formatting objects exist."
+    ],
+    "matrix": [
+      "Preserve compact 9pt body/header sizing.",
+      "Do not expand row padding.",
+      "Keep matrix within 1098x377."
+    ],
+    "qa": [
+      "Report actual saved bounds for every visual in this contract.",
+      "Report actual card value/label font sizes read back from saved JSON.",
+      "FAIL if a KPI card has no explicit value/label formatting.",
+      "FAIL if Power BI theme defaults are still responsible for KPI typography."
+    ]
+  }
+}

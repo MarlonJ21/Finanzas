@@ -1,0 +1,119 @@
+table Dim_Fecha
+	lineageTag: 438b5c53-b576-47be-899d-03c3ddba7785
+
+	column FechaKey
+		dataType: int64
+		formatString: 0
+		lineageTag: fa83f4df-caff-4c58-a1a2-473c6b08a9c6
+		summarizeBy: none
+		sourceColumn: FechaKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fecha
+		dataType: string
+		lineageTag: d6703424-76d5-4d9a-824f-f3471e2f1d30
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+	column Año
+		dataType: int64
+		formatString: 0
+		lineageTag: ea1e508a-99a3-4e23-830c-e33eb716f019
+		summarizeBy: none
+		sourceColumn: Año
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesNumero
+		dataType: int64
+		formatString: 0
+		lineageTag: 5119d0dc-936f-4719-bd7a-2742f21f1650
+		summarizeBy: none
+		sourceColumn: MesNumero
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		dataType: string
+		lineageTag: 6511b0e1-7e7f-48c9-a27f-a06765a94663
+		summarizeBy: none
+		sourceColumn: Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column AñoMes
+		dataType: string
+		lineageTag: eda7ae9d-3a97-43dd-995f-9337a837fc37
+		summarizeBy: none
+		sourceColumn: AñoMes
+
+		annotation SummarizationSetBy = Automatic
+
+	column AñoMesOrden
+		dataType: int64
+		formatString: 0
+		lineageTag: 950f9350-687a-4e05-8aad-51f824861357
+		summarizeBy: none
+		sourceColumn: AñoMesOrden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia
+		dataType: int64
+		formatString: 0
+		lineageTag: 106f80c2-2763-4d9f-9f2f-f828a1906fad
+		summarizeBy: none
+		sourceColumn: Dia
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiaSemanaNumero
+		dataType: int64
+		formatString: 0
+		lineageTag: 53973c6c-2c5a-469f-9d1e-095efed67b46
+		summarizeBy: none
+		sourceColumn: DiaSemanaNumero
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiaSemana
+		dataType: string
+		lineageTag: 98abdd3f-198f-420b-ac8c-ee8148d3136b
+		summarizeBy: none
+		sourceColumn: DiaSemana
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsFinSemana
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d3826eb-5798-4e0e-9521-d6e3da1e327c
+		summarizeBy: none
+		sourceColumn: EsFinSemana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quincena
+		dataType: int64
+		formatString: 0
+		lineageTag: 773590ab-04b6-4888-815f-0ffb5a9efcf8
+		summarizeBy: none
+		sourceColumn: Quincena
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Fecha = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents("C:\Users\m.ortega\Documents\M.ORTEGA\m.ortega\fin per\DWH\output\dim_fecha.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])
+				in
+				    Origen
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

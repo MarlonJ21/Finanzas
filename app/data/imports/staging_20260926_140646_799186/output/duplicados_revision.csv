@@ -1,0 +1,20 @@
+﻿MovimientoId,Fecha,DescripcionOriginal,TipoRial,Cuenta,MontoOriginal,MonedaOriginal,MontoUSD,CategoriaRial,DuplicateType,DuplicateGroup
+c1a24e51ff442f27bb4630dcb27a9a42,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,1
+a09542e9944d308c45e72257c538525c,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,1
+2386b4b4289053ba56f8a3131d2b45c7,2026-09-03,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,1
+a6d5bde8b95a4c4b16f9ece804ef15b0,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,2
+23e44019aee6547b64a5c6f8cfb80711,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,2
+4c9b510959e2f73ad6a465bc3945097a,2026-09-05,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,2
+21e594e304db823abfc8e4e5c9f9b8c5,2026-09-08,Moto. Francisco Cordova Cuota 1/2,Egreso,Efectivo,27.5,USD,27.5,Pago de deuda,POSSIBLE_DUPLICATE,3
+41a485ca165a3eb917c679b8ab50aa0b,2026-09-08,Moto. Francisco Cordova Cuota 2/2,Egreso,Efectivo,27.5,USD,27.5,Pago de deuda,POSSIBLE_DUPLICATE,3
+be6e1f818f9ddfe5f77737f5a4583817,2026-09-13,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,4
+30cab8ae54f1de149c8229a73722d507,2026-09-13,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,4
+903a55c1aa620158bcc1901308ced0bb,2026-09-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+c17c84dac7fe830771cd5dadb775946e,2026-09-15,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,5
+af39ccf82e89d3cd27ecfa3e95f3fc01,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+d24bef8bc9ebf2a93930a6d93cadb491,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+85ce38cec293d8fd4b48fab4a6e724c3,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+df7f87284995f2ec881b866b917bb28a,2026-09-20,Comision por error,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+f3cbdf4b769ebbaa172443d4b754337c,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+3f1fbe587038faf7c83b9974a2a5c0ae,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6
+baf954f3dd70deb75fcc0315561ba705,2026-09-20,Comisión por pago móvil,Egreso,BNC,14.0,VES,0.02,Impuestos y Finanzas,POSSIBLE_DUPLICATE,6

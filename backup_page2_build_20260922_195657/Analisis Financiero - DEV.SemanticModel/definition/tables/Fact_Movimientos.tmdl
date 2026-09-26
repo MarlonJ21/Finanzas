@@ -1,0 +1,407 @@
+table Fact_Movimientos
+	lineageTag: a2002c41-49a4-4a1a-864a-4a4dc2b83db5
+
+	column MovimientoId
+		dataType: string
+		lineageTag: c5db30cb-31c0-44ab-ad34-0f895315650b
+		summarizeBy: none
+		sourceColumn: MovimientoId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fecha
+		dataType: string
+		lineageTag: cde50c9f-d3ed-4b18-928a-6bb58c7772a9
+		summarizeBy: none
+		sourceColumn: Fecha
+
+		annotation SummarizationSetBy = Automatic
+
+	column Hora
+		dataType: string
+		lineageTag: 374d3328-4f35-496b-92db-c6b49a261303
+		summarizeBy: none
+		sourceColumn: Hora
+
+		annotation SummarizationSetBy = Automatic
+
+	column FechaHora
+		dataType: string
+		lineageTag: d6496180-2c67-4076-bd60-6bb6fc1bd63c
+		summarizeBy: none
+		sourceColumn: FechaHora
+
+		annotation SummarizationSetBy = Automatic
+
+	column TipoRial
+		dataType: string
+		lineageTag: 88fd7dd1-342d-4d64-8471-c1838eb87264
+		summarizeBy: none
+		sourceColumn: TipoRial
+
+		annotation SummarizationSetBy = Automatic
+
+	column CategoriaRial
+		dataType: string
+		lineageTag: 0f46cdae-d6a7-4788-94aa-37e667b17c2d
+		summarizeBy: none
+		sourceColumn: CategoriaRial
+
+		annotation SummarizationSetBy = Automatic
+
+	column SubcategoriaRial
+		dataType: string
+		lineageTag: 3f040f2f-0d40-4fdc-a7bc-8b15caf3dca9
+		summarizeBy: none
+		sourceColumn: SubcategoriaRial
+
+		annotation SummarizationSetBy = Automatic
+
+	column DescripcionOriginal
+		dataType: string
+		lineageTag: ffb8591d-f0c7-46aa-b68a-057be31b711b
+		summarizeBy: none
+		sourceColumn: DescripcionOriginal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cuenta
+		dataType: string
+		lineageTag: cb83509f-a41a-43e6-9a71-16328f7747f1
+		summarizeBy: none
+		sourceColumn: Cuenta
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonedaOriginal
+		dataType: string
+		lineageTag: 63d062fb-e56b-4085-b199-c21a099a6bf2
+		summarizeBy: none
+		sourceColumn: MonedaOriginal
+
+		annotation SummarizationSetBy = Automatic
+
+	column MontoOriginal
+		dataType: double
+		lineageTag: a411ef94-b482-4eb3-9706-5e4411025d00
+		summarizeBy: sum
+		sourceColumn: MontoOriginal
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MontoUSD
+		dataType: double
+		lineageTag: e91438eb-8327-41f3-9f7b-ea19dce94da3
+		summarizeBy: sum
+		sourceColumn: MontoUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MontoBsRaw
+		dataType: double
+		lineageTag: f1b85ed1-9fa9-47be-85da-57bb2b788ee5
+		summarizeBy: sum
+		sourceColumn: MontoBsRaw
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MontoUsdRaw
+		dataType: double
+		lineageTag: 2829e802-140f-4fa4-a74d-5812bd2c1f8c
+		summarizeBy: sum
+		sourceColumn: MontoUsdRaw
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TuParteBs
+		dataType: double
+		lineageTag: 00f8f616-4f71-4e17-bcd8-273f16b333e2
+		summarizeBy: sum
+		sourceColumn: TuParteBs
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TuParteUSD
+		dataType: double
+		lineageTag: 7939ce83-791d-4157-a21b-2c8d862d91f7
+		summarizeBy: sum
+		sourceColumn: TuParteUSD
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TasaRegistrada
+		dataType: double
+		lineageTag: 40676a5d-30db-426b-97e1-7693f29d38b8
+		summarizeBy: sum
+		sourceColumn: TasaRegistrada
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TasaImplicita
+		dataType: double
+		lineageTag: a2bb3acb-bdfb-4b4f-9253-5586256225a9
+		summarizeBy: sum
+		sourceColumn: TasaImplicita
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AnomaliaFX
+		dataType: int64
+		formatString: 0
+		lineageTag: 9dce3d8b-0dba-4c29-96e5-b5891700bf6e
+		summarizeBy: sum
+		sourceColumn: AnomaliaFX
+
+		annotation SummarizationSetBy = Automatic
+
+	column MissingFxRate
+		dataType: int64
+		formatString: 0
+		lineageTag: 3fc26d7f-3452-4465-ab5c-9ab628c9eca4
+		summarizeBy: sum
+		sourceColumn: MissingFxRate
+
+		annotation SummarizationSetBy = Automatic
+
+	column Compartido
+		dataType: string
+		lineageTag: c11f4de3-80b6-4718-a6ea-28ec37c1910a
+		summarizeBy: none
+		sourceColumn: Compartido
+
+		annotation SummarizationSetBy = Automatic
+
+	column Comprobante
+		dataType: string
+		lineageTag: e8595ada-c3b4-48b2-83e7-7aaa351b0873
+		summarizeBy: none
+		sourceColumn: Comprobante
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dominio
+		dataType: string
+		lineageTag: b55703fd-8836-4c35-9314-9ac3f7755abb
+		summarizeBy: none
+		sourceColumn: Dominio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 3ab20365-367b-4204-b896-2fb3bb871636
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategoria
+		dataType: string
+		lineageTag: 58a8ac34-9e1a-43be-812d-14a4b2a2d4a1
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column TitularGasto
+		dataType: string
+		lineageTag: 5bf893e0-9846-46f8-a234-11a7b5f6df20
+		summarizeBy: none
+		sourceColumn: TitularGasto
+
+		annotation SummarizationSetBy = Automatic
+
+	column NaturalezaFinanciera
+		dataType: string
+		lineageTag: 84dbd275-efe9-4550-bda7-edf328a4709c
+		summarizeBy: none
+		sourceColumn: NaturalezaFinanciera
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfianzaClasificacion
+		dataType: string
+		lineageTag: 83c6b0bd-5f66-4080-b824-a6d2a02abe91
+		summarizeBy: none
+		sourceColumn: ConfianzaClasificacion
+
+		annotation SummarizationSetBy = Automatic
+
+	column PendienteRevision
+		dataType: int64
+		formatString: 0
+		lineageTag: cd842bbb-7493-4067-af29-5e183176db7b
+		summarizeBy: sum
+		sourceColumn: PendienteRevision
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsPresupuestable
+		dataType: int64
+		formatString: 0
+		lineageTag: bf830558-5c64-45d5-9f67-5e9fef9f1e5e
+		summarizeBy: sum
+		sourceColumn: EsPresupuestable
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsConsumoPersonal
+		dataType: int64
+		formatString: 0
+		lineageTag: 7fc6b334-fb41-4cd4-ad25-c4750c678393
+		summarizeBy: sum
+		sourceColumn: EsConsumoPersonal
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsIngresoEconomico
+		dataType: int64
+		formatString: 0
+		lineageTag: 227a2065-833e-4dc0-a015-ae12a0e451f3
+		summarizeBy: sum
+		sourceColumn: EsIngresoEconomico
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsEgresoEconomico
+		dataType: int64
+		formatString: 0
+		lineageTag: 79f37120-ae38-4662-96a6-6afa0392f966
+		summarizeBy: sum
+		sourceColumn: EsEgresoEconomico
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsNegocio
+		dataType: int64
+		formatString: 0
+		lineageTag: bbd5a2c1-220c-420d-a762-1ff5f84ddb11
+		summarizeBy: sum
+		sourceColumn: EsNegocio
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsAhorro
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f13f055-e286-4da0-9f70-d812f5bdddff
+		summarizeBy: sum
+		sourceColumn: EsAhorro
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsPrestamo
+		dataType: int64
+		formatString: 0
+		lineageTag: e43e19f9-3f9a-4992-baee-a994242a5a8b
+		summarizeBy: sum
+		sourceColumn: EsPrestamo
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsDeuda
+		dataType: int64
+		formatString: 0
+		lineageTag: 6928d618-b592-4ed3-88a1-89ca7ec5ffe9
+		summarizeBy: sum
+		sourceColumn: EsDeuda
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsTransferencia
+		dataType: int64
+		formatString: 0
+		lineageTag: bfd21bbb-b620-46f7-9ebc-abac3ad97337
+		summarizeBy: sum
+		sourceColumn: EsTransferencia
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsReembolso
+		dataType: int64
+		formatString: 0
+		lineageTag: 9aeebb1e-4911-436a-adde-8846de09806e
+		summarizeBy: sum
+		sourceColumn: EsReembolso
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReglaClasificacion
+		dataType: string
+		lineageTag: 1167a766-e562-40d5-8cff-5e34b66f3c0d
+		summarizeBy: none
+		sourceColumn: ReglaClasificacion
+
+		annotation SummarizationSetBy = Automatic
+
+	column DuplicateType
+		dataType: string
+		lineageTag: 56355405-cc15-4fc5-9068-2f6c08a1e084
+		summarizeBy: none
+		sourceColumn: DuplicateType
+
+		annotation SummarizationSetBy = Automatic
+
+	column PosibleDuplicado
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ad0e75f-3bc2-4e93-8912-417cd725ef15
+		summarizeBy: sum
+		sourceColumn: PosibleDuplicado
+
+		annotation SummarizationSetBy = Automatic
+
+	column IdCategoria
+		dataType: string
+		lineageTag: 2f8f5ecd-0b3b-440b-a54e-3c085041504d
+		summarizeBy: none
+		sourceColumn: IdCategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column FechaKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 3ca436bd-7573-4727-8a8b-c58a9b57d9cf
+		summarizeBy: none
+		sourceColumn: FechaKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quincena
+		dataType: int64
+		formatString: 0
+		lineageTag: 75d7cfe9-29a7-4b5b-8250-ab1a0e0e5349
+		summarizeBy: none
+		sourceColumn: Quincena
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fact_Movimientos = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents("C:\Users\m.ortega\Documents\M.ORTEGA\m.ortega\fin per\DWH\output\movimientos.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])
+				in
+				    Origen
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

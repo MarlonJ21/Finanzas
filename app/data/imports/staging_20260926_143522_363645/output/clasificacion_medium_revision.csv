@@ -1,0 +1,19 @@
+﻿ReglaClasificacion,CategoriaRial,Categoria,Subcategoria,COUNT,SUM_MontoUSD
+R048,Alimentación,Alimentación,Mercado / Hogar,17,599.65
+R050,Alimentación,Alimentación,Comer fuera,4,35.61
+R051,Alimentación,Alimentación,Snacks / Antojos,8,21.25
+R052,Comida rapida,Alimentación,Comida a domicilio,3,14.77
+R053,Transporte,Movilidad,Transporte público,1,0.14
+R054,Transporte,Movilidad,Traslado personal,1,3.55
+R055,Casa,Telecomunicaciones,Telefonía,18,26.93
+R056,Casa,Telecomunicaciones,Internet,2,50.0
+R057,Impuestos y Finanzas,Comisiones,Pago móvil,74,4.17
+R058,Impuestos y Finanzas,Comisiones,Bancarias,28,7.59
+R059,Vestimenta,Vestimenta,Ropa,4,62.39
+R060,Gastos Mayores,Tecnología,Equipos,2,21.97
+R061,Salud,Salud,Consultas,7,24.05
+R062,Salud,Salud,Medicinas,2,3.15
+R063,Salud,Salud,Otros Salud,1,0.45
+R064,Entretenimiento,Ocio,Entretenimiento,3,23.34
+R065,CASHEA,Deuda / CASHEA,Cuota existente,9,34.02
+R066,Otros ingresos,Ingresos,Otros,1,9.71

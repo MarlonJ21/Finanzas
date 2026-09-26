@@ -1,0 +1,183 @@
+:root {
+  color-scheme: dark;
+  --bg: #071328;
+  --panel: #0d1c39;
+  --panel-2: #13284d;
+  --line: #28456f;
+  --text: #eef4ff;
+  --muted: #a7b6d8;
+  --cyan: #20d9f2;
+  --green: #35e4a1;
+  --violet: #cb7cff;
+  --yellow: #ffd02c;
+  --red: #ff5b6a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 35% -20%, #193562 0, #071328 38%, #050b18 100%);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.topnav {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(10, 24, 48, 0.82);
+}
+
+.navlinks {
+  display: flex;
+  gap: 10px;
+}
+
+.navlinks a {
+  color: var(--muted);
+  padding: 8px 10px;
+}
+
+.page {
+  margin-top: 18px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.kpis {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.two {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+.card,
+.panel {
+  background: linear-gradient(180deg, rgba(19, 40, 77, 0.92), rgba(9, 21, 44, 0.94));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.card {
+  padding: 16px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.value {
+  font-size: 32px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+.cyan {
+  color: var(--cyan);
+}
+
+.green {
+  color: var(--green);
+}
+
+.violet {
+  color: var(--violet);
+}
+
+.panel {
+  padding: 16px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid rgba(92, 128, 184, 0.26);
+  font-size: 13px;
+  padding: 9px 8px;
+  text-align: left;
+}
+
+th {
+  color: #d9e6ff;
+  font-weight: 700;
+}
+
+.right {
+  text-align: right;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+input,
+select,
+button {
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #102349;
+  color: var(--text);
+  font: inherit;
+  padding: 9px 10px;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+pre {
+  background: #071020;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: auto;
+  padding: 12px;
+}
+
+@media (max-width: 900px) {
+  .kpis,
+  .two {
+    grid-template-columns: 1fr;
+  }
+
+  .topnav,
+  .navlinks,
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,48 @@
+Criterios para encontrar posibles errores:
+
+Emails:
+El único correo valido cuando el cliente indica que no posee es "sincorreo@sincorreo.com", si se escribe distinto se toma como error.
+Largo menor a 8 caracteres.
+Campo vacío.
+Debe incluir un "." y un "@", también se toma como invalido si incluye más de 1 "@"
+Verifica que tenga uno de los dominios más comunes, si no , lo toma como posible error. Dominios incluidos: "gmail.com", "hotmail.com", "outlook.com",  "yahoo.com", "icloud.com", "protonmail.com","yandex.com", "mail.com", "aol.com","live.com", "msn.com", "office365.com", 'yahoo.es', 'hotmail.es', 'outlook.es'
+El correo debe tener al menos 4 caracteres antes del @.
+El correo no debe ser sólo números antes del @. Ej: 1234567@gmail.com
+No debe aparecer en el diccionario de palabras invalidas indicado: (notiene, nopo, solicitud@, notengo@, sistemastecnologiadk@, nodispone@, noindi, ninguno@, tiendasdaka@, dispositivo14daka@, sincorreo, tiendas@, nomeacuerdo@, daka, nooposee, noosee, sistema@, noprovee, bastardo, jose@, maria@, luis@, noaplica, nocorreo).
+
+Se Incluye un filtro en la pestaña de detalle - duplicado de clientes para identificar una segunda verificación hecha por mercadeo enviando un token a los correos que pasaron la primera validación.
+
+Para validaciones de email sólo de toman en cuenta las fuentes: CRM y Portal Cautivo, ya que las otras incluyen validación OTP.
+
+Teléfonos:
+Campo vacío, 
+Largo diferente de 12 caracteres. Ej. de 12 caracteres: 584244004553.
+Largo diferente de 11 caracteres. Ej. de 11 caracteres: 04244004553.
+Largo diferente de 10 caracteres. Ej. de 10 caracteres: 4244004553.
+
+Para validaciones de teléfono solo se toman en cuenta la fuente CRM, ya que las otras incluyen validación OTP.
+
+Estado:
+El Estado de la Sucursal donde el cliente realizó su primera compra debe coincidir con el Estado registrado en la dirección del cliente en CRM. La validación de Estado sólo se tiene en cuenta con clientes provenientes de CRM.
+
+
+Reporte de Abandono - Formulario
+
+Se considera un "cliente valido" cuando verifica su correo y número de teléfono. Se considera "no válido" si no se completan ambas verificaciones. 
+
+Entre los "no validos" se clasifican 4 grupos:
+
+Sólo rellenó cedula: clientes que entraron al portal, colocaron su cedula y luego abandonaron. En la hoja de detalles de éste total se incluyen sólo las cedulas que están registradas en nuestro CRM y de allí se toma la demás data.
+Sólo verificó correo: clientes que llegaron al paso de verificación de datos pero sólo validaron el código enviado a su correo.
+Sólo verificó teléfono: clientes que llegaron al paso de verificación de datos pero sólo validaron el código enviado a su teléfono.
+Pidió los códigos pero no verificó ninguno: clientes que llegaron al paso donde se envían ambos códigos a su teléfono y correo pero no validó ninguno de los dos.
+
+Clientes Ecommerce:
+
+Se define como Cliente Recurrente, cuando el cliente ya había comprado en las tiendas antes de registrarse en el ecommerce.
+
+Se define como Cliente Nuevo, cuando el cliente no ha comprado nunca o su primera compra fue posterior a su registro en el ecommerce.
+
+
+
+ 

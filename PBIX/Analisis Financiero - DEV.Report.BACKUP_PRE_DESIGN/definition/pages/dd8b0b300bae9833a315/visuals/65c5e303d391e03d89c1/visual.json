@@ -1,0 +1,219 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "65c5e303d391e03d89c1",
+  "position": {
+    "x": 0,
+    "y": 342.10526315789474,
+    "z": 0,
+    "height": 596.66666666666674,
+    "width": 823.33333333333337,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              },
+              "queryRef": "Dim_Categorias.Categoria",
+              "nativeQueryRef": "Categoria",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Subcategoria"
+                }
+              },
+              "queryRef": "Dim_Categorias.Subcategoria",
+              "nativeQueryRef": "Subcategoria",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gasto Mensual USD"
+                }
+              },
+              "queryRef": "_Medidas.Gasto Mensual USD",
+              "nativeQueryRef": "Gasto Mensual USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Presupuesto USD"
+                }
+              },
+              "queryRef": "_Medidas.Presupuesto USD",
+              "nativeQueryRef": "Presupuesto USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Disponible Mensual USD"
+                }
+              },
+              "queryRef": "_Medidas.Disponible Mensual USD",
+              "nativeQueryRef": "Disponible Mensual USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "% Presupuesto Mensual Consumido"
+                }
+              },
+              "queryRef": "_Medidas.% Presupuesto Mensual Consumido",
+              "nativeQueryRef": "% Presupuesto Mensual Consumido"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Dim_Categorias.Categoria"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Categorias"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Dim_Categorias.Subcategoria"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "146.33334468464847D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.% Presupuesto Mensual Consumido"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "cbeec9828c9e3d5e0387",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dim_Categorias"
+              }
+            },
+            "Property": "Categoria"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "3eea96e013459063029c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dim_Categorias"
+              }
+            },
+            "Property": "Subcategoria"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4071239e75eec00644a8",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_Medidas"
+              }
+            },
+            "Property": "Presupuesto USD"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

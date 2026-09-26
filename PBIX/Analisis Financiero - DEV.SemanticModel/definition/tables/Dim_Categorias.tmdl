@@ -1,0 +1,81 @@
+table Dim_Categorias
+	lineageTag: b97b765a-447f-4b57-ba54-64dd2e73855e
+
+	column IdCategoria
+		dataType: string
+		lineageTag: 13fcb89a-db37-4df4-9ef1-f04049edbb4d
+		summarizeBy: none
+		sourceColumn: IdCategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dominio
+		dataType: string
+		lineageTag: 91c71958-16c6-4dfb-8f18-025184df2b1f
+		summarizeBy: none
+		sourceColumn: Dominio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 9fd8f43e-dcda-4db9-a99d-2cbf599e1e60
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategoria
+		dataType: string
+		lineageTag: fc4b7c75-a293-4100-b4d0-7c588f449ea7
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column NaturalezaFinanciera
+		dataType: string
+		lineageTag: 3836181a-1e9b-420a-9649-2fad9f76ad80
+		summarizeBy: none
+		sourceColumn: NaturalezaFinanciera
+
+		annotation SummarizationSetBy = Automatic
+
+	column TitularGasto
+		dataType: string
+		lineageTag: fbfc30f6-96e3-4de2-87b6-ab6225db07d1
+		summarizeBy: none
+		sourceColumn: TitularGasto
+
+		annotation SummarizationSetBy = Automatic
+
+	column EsPresupuestable
+		dataType: int64
+		formatString: 0
+		lineageTag: 6fceb1cf-35f9-4724-92ee-e7e0c883aa8b
+		summarizeBy: sum
+		sourceColumn: EsPresupuestable
+
+		annotation SummarizationSetBy = Automatic
+
+	column Activo
+		dataType: int64
+		formatString: 0
+		lineageTag: bf3739ec-f790-4a9a-af0f-fb2d08756e45
+		summarizeBy: sum
+		sourceColumn: Activo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Categorias = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents("C:\Users\m.ortega\Documents\M.ORTEGA\m.ortega\fin per\DWH\output\categorias.parquet"), [Compression=null, LegacyColumnNameEncoding=false, MaxDepth=null])
+				in
+				    Origen
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

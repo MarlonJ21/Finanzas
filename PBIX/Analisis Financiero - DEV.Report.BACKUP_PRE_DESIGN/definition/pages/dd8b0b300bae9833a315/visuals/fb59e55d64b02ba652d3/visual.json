@@ -1,0 +1,176 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fb59e55d64b02ba652d3",
+  "position": {
+    "x": 0,
+    "y": 79.591836734693885,
+    "z": 3,
+    "height": 226.31578947368422,
+    "width": 1921.0526315789473,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Salario Cobrado Quincena USD"
+                }
+              },
+              "queryRef": "_Medidas.Salario Cobrado Quincena USD",
+              "nativeQueryRef": "Salario Cobrado Quincena USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Safe to Spend USD"
+                }
+              },
+              "queryRef": "_Medidas.Safe to Spend USD",
+              "nativeQueryRef": "Safe to Spend USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gasto Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Gasto Quincenal USD",
+              "nativeQueryRef": "Gasto Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Disponible Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Disponible Quincenal USD",
+              "nativeQueryRef": "Disponible Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ahorro Objetivo USD"
+                }
+              },
+              "queryRef": "_Medidas.Ahorro Objetivo USD",
+              "nativeQueryRef": "Ahorro Objetivo USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Disponible Mensual USD"
+                }
+              },
+              "queryRef": "_Medidas.Disponible Mensual USD",
+              "nativeQueryRef": "Disponible Mensual USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Presupuesto Quincenal USD"
+                }
+              },
+              "queryRef": "_Medidas.Presupuesto Quincenal USD",
+              "nativeQueryRef": "Presupuesto Quincenal USD"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Estado Cobro Quincena"
+                }
+              },
+              "queryRef": "_Medidas.Estado Cobro Quincena",
+              "nativeQueryRef": "Estado Cobro Quincena"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Medidas"
+                  }
+                },
+                "Property": "Salario Cobrado Quincena USD"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "layout": [
+        {
+          "properties": {
+            "columnCount": {
+              "expr": {
+                "Literal": {
+                  "Value": "4L"
+                }
+              }
+            },
+            "orientation": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

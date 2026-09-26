@@ -1,0 +1,21 @@
+table 'Ajuste Simulado USD'
+	isHidden
+	lineageTag: 8296e453-9740-4248-91c0-39ed089e0825
+
+	column 'Ajuste Simulado USD'
+		dataType: int64
+		formatString: 0
+		lineageTag: debc58cd-211f-47ab-90ae-5a5e7480d539
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ajuste Simulado USD' = calculated
+		mode: import
+		source =
+				
+				GENERATESERIES ( -100, 100, 1 )
+
+	annotation PBI_Id = 7fcf8c5d5edd4cca9388d58e1709980c
+

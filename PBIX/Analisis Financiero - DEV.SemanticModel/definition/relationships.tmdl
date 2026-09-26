@@ -1,0 +1,47 @@
+relationship daaba905-e08e-47b8-76aa-9dca3e1fcff9
+	fromColumn: Fact_Presupuestos.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship a6c8dc7c-13b4-2b75-0b8a-2cc50233c4a6
+	fromColumn: Fact_Movimientos.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship 0b58214f-06b6-e2d2-04d7-2e26e73c47f0
+	fromColumn: Fact_Movimientos.FechaKey
+	toColumn: Dim_Fecha.FechaKey
+
+relationship AutoDetected_790f4c80-02a9-4a1e-828a-ec77a30cb595
+	fromColumn: Fact_Presupuestos_Quincenal.IdCategoria
+	toColumn: Dim_Categorias.IdCategoria
+
+relationship 2618c287-6e64-d4ec-57a5-3549b4790440
+	fromColumn: Fact_Presupuestos.Escenario
+	toColumn: Dim_Escenario.Escenario
+
+relationship 0c0f9097-ad95-4bc1-0041-ad9b7de7d906
+	fromColumn: Fact_Presupuestos_Quincenal.Escenario
+	toColumn: Dim_Escenario.Escenario
+
+relationship a63718aa-cc95-5282-d191-515a303fbac5
+	fromColumn: Fact_Movimientos.Quincena
+	toColumn: Dim_Quincena.Quincena
+
+relationship b6cfdde7-e756-cd03-f05a-406f1df4040d
+	fromColumn: Fact_Presupuestos_Quincenal.Quincena
+	toColumn: Dim_Quincena.Quincena
+
+relationship e08c3d77-620b-4aa7-a253-5b41e0fd09eb
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Fact_Presupuestos.MesActual
+	toColumn: LocalDateTable_86d7cdee-09df-477c-b75d-2ffc38f77ea8.Date
+
+relationship 801f85b9-50ec-4c05-8a93-a9c7039cb7b2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Fact_Presupuestos.MesPlan
+	toColumn: LocalDateTable_096a7437-5d46-4418-9479-23801c4acd0b.Date
+
+relationship c0709579-8242-43b4-8dd3-11574fff18b2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Fact_Presupuestos.FechaCorte
+	toColumn: LocalDateTable_2e6856da-2b78-442b-852d-a2ed301e68cc.Date
+

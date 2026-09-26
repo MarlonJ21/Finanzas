@@ -1,0 +1,67 @@
+RuleId,Priority,TipoRial,CategoriaRial,SubcategoriaRial,PatternDescripcion,MatchMode,Dominio,Categoria,Subcategoria,TitularGasto,NaturalezaFinanciera,EsPresupuestable,EsConsumoPersonal,EsIngresoEconomico,EsEgresoEconomico,EsNegocio,EsAhorro,EsPrestamo,EsDeuda,EsTransferencia,EsReembolso
+R001,10,,,,"(?i)chatgpt",regex,PERSONAL,Suscripciones / Herramientas,ChatGPT,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R002,10,,,,"(?i)\brial\b",regex,PERSONAL,Suscripciones / Herramientas,RIAL,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R003,10,,,,"(?i)capcut",regex,PERSONAL,Suscripciones / Herramientas,CapCut,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R004,10,,,,"(?i)meta\s*ads|publicidad|campa[nñ]a.*premiados",regex,NEGOCIO,PremiadosVE,Meta Ads / Publicidad,PREMIADOSVE,PUBLICIDAD,1,0,0,1,1,0,0,0,0,0
+R005,10,,Ingreso,,"(?i)salario|quincena",regex,PERSONAL,Ingresos,Salario,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
+R006,10,Ingreso,,,"(?i)salario|quincena",regex,PERSONAL,Ingresos,Salario,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
+R007,10,,,,"(?i)cashea.*(cuota|\d+-\d+|pago cuota)",regex,PERSONAL,Deuda / CASHEA,Cuota existente,MARLON,PAGO_DEUDA,1,0,0,1,0,0,0,1,0,0
+R008,10,,,,"(?i)cashea.*(inicial|nueva compra|compra.*cashea)",regex,PERSONAL,Deuda / CASHEA,Nueva compra / Inicial,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,1,0,0
+R009,10,,,,"(?i)inicial.*cashea",regex,PERSONAL,Deuda / CASHEA,Nueva compra / Inicial,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,1,0,0
+R010,10,,,,"(?i)pago.*cuota|cuota.*único|cuota.*cashea",regex,PERSONAL,Deuda / CASHEA,Cuota existente,MARLON,PAGO_DEUDA,1,0,0,1,0,0,0,1,0,0
+R011,05,,Préstamo otorgado,,".*",regex,PATRIMONIAL,Préstamos,Préstamo otorgado,MARLON,PRESTAMO,0,0,0,0,0,0,1,0,0,0
+R012,05,,Préstamo recibido,,".*",regex,PATRIMONIAL,Préstamos,Préstamo recibido,MARLON,PRESTAMO,0,0,0,0,0,0,1,0,0,0
+R013,10,,,,"(?i)préstamo otorgado|prestamo otorgado|prestamo franc",regex,PATRIMONIAL,Préstamos,Préstamo otorgado,MARLON,PRESTAMO,0,0,0,0,0,0,1,0,0,0
+R014,10,,,,"(?i)préstamo recibido|prestamo recibido|prestamo osquita",regex,PATRIMONIAL,Préstamos,Préstamo recibido,MARLON,PRESTAMO,0,0,0,0,0,0,1,0,0,0
+R015,10,,,,"(?i)devoluci[oó]n de prestamo|devolucion.*prestamo",regex,PATRIMONIAL,Préstamos,Préstamo otorgado,MARLON,PRESTAMO,0,0,0,0,0,0,1,0,0,0
+R016,10,,,,"(?i)cobro.*(prestamo|préstamo|cxc)|cuota por cobrar|moto.*francisco cordova",regex,PATRIMONIAL,Cuentas por cobrar,Cobro CxC,MARLON,CUENTA_POR_COBRAR,0,0,0,0,0,0,0,0,0,0
+R017,10,,Cuentas x Cobrar,,".*",regex,PATRIMONIAL,Cuentas por cobrar,Cobro CxC,MARLON,CUENTA_POR_COBRAR,0,0,0,0,0,0,0,0,0,0
+R018,10,Transferencia (salida),,,".*",regex,PATRIMONIAL,Transferencias,Transferencia interna salida,NO_APLICA,TRANSFERENCIA_INTERNA,0,0,0,0,0,0,0,0,1,0
+R019,10,Transferencia (entrada),,,".*",regex,PATRIMONIAL,Transferencias,Transferencia interna entrada,NO_APLICA,TRANSFERENCIA_INTERNA,0,0,0,0,0,0,0,0,1,0
+R020,10,,,,"(?i)saldo inicial|ahorro previo|ahorros viejos",regex,PATRIMONIAL,Ahorro,Saldo inicial / ahorro previo,MARLON,AHORRO,0,0,0,0,0,1,0,0,0,0
+R021,10,,,,"(?i)yummy.*(premiados|kit|entrega|cliente)",regex,NEGOCIO,PremiadosVE,Entrega local,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0
+R022,10,,,,"(?i)yummy.*(traslado|trabajo|pasaje|casa\b|metropolis|guayos|ag[uú]itas|firestone|honda|canaima)",regex,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R023,10,,,,"(?i)yummy.*(comida|restaurante|donas|perro|hamburguesa|pizza)",regex,PERSONAL,Alimentación,Comida a domicilio,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R024,10,,,,"(?i)yummy.*anilet",regex,PERSONAL,Gastos Anilet,Alimentación,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R025,10,,Ventas,,"(?i)premiados|kit",regex,NEGOCIO,PremiadosVE,Ventas,PREMIADOSVE,VENTAS,0,0,1,0,1,0,0,0,0,0
+R026,10,Ingreso,Ventas,,".*",regex,NEGOCIO,PremiadosVE,Ventas,PREMIADOSVE,VENTAS,0,0,1,0,1,0,0,0,0,0
+R027,10,,,,"(?i)venta.*kit|kit premiados",regex,NEGOCIO,PremiadosVE,Ventas,PREMIADOSVE,VENTAS,0,0,1,0,1,0,0,0,0,0
+R028,10,,Gastos premiadosVe,,"(?i)papeler[ií]a|embalaje",regex,NEGOCIO,PremiadosVE,Embalaje,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0
+R029,10,,,,"(?i)vuelto.*premiados|diferencia a favor.*kit",regex,NEGOCIO,PremiadosVE,Otros gastos,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0
+R030,10,,Envíos Nacionales,,"(?i)mrw|zoom|tealca",regex,NEGOCIO,PremiadosVE,Envío nacional,PREMIADOSVE,EGRESO_OPERATIVO,1,0,0,1,1,0,0,0,0,0
+R031,15,,,,"(?i)devoluci[oó]n.*internet",regex,PERSONAL,Ingresos,Reembolso,MARLON,REEMBOLSO,0,0,1,0,0,0,0,0,0,1
+R032,15,,,,"(?i)binance earn|remuneraci[oó]n|abonos bnc",regex,PERSONAL,Ingresos,Rendimientos,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
+R033,20,,Gastos Anilet,,"(?i)mercado|supermercado",regex,PERSONAL,Gastos Anilet,Mercado / Hogar,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R034,20,,Gastos Anilet,,"(?i)corte|barberia|peluqueria|estetica|jabon|higiene|ginecolo|tratamiento",regex,PERSONAL,Gastos Anilet,Cuidado personal,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R035,20,,Gastos Anilet,,"(?i)examen|medicina|farmacia|doctor",regex,PERSONAL,Gastos Anilet,Salud,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R036,20,,Gastos Anilet,,"(?i)recarga|movistar|movilnet|digitel|plan",regex,PERSONAL,Gastos Anilet,Telecomunicaciones,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R037,20,,Gastos Anilet,,"(?i)yummy|comida|donas|perro|hamburguesa",regex,PERSONAL,Gastos Anilet,Alimentación,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R038,25,,Gastos Anilet,,".*",regex,PERSONAL,Gastos Anilet,Otros,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R039,20,,,,"(?i)anilet",regex,PERSONAL,Gastos Anilet,Otros,ANILET,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R040,20,,Hotel,,"(?i)cantaura|hotel|mini suite",regex,PERSONAL,Ocio,Hotel / Alojamiento,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R041,20,,Bienestar,Peluquería,"(?i)corte",regex,PERSONAL,Cuidado personal,Barbería / Estética,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R042,20,,Gastos de Trabajo,Logística laboral,"(?i)licencia",regex,PERSONAL,Trabajo / Trámites,Documentos / Gestiones,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R043,20,,,,"(?i)da[nñ]os a moto",regex,PERSONAL,Moto,Reparación,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R044,20,,,,"(?i)moto taxi|pasaje",regex,PERSONAL,Movilidad,Transporte público,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R045,20,,,,"(?i)caramelo|donas|rol de canela|refeesco|refresco|pizza",regex,PERSONAL,Alimentación,Snacks / Antojos,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R046,20,,,,"(?i)condones|omeprazol",regex,PERSONAL,Salud,Medicinas,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R047,20,,,,"(?i)pago mycono|eco mam[aá]",regex,PERSONAL,Alimentación,Comida a domicilio,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R048,30,,Alimentación,Mercado,".*",regex,PERSONAL,Alimentación,Mercado / Hogar,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R049,30,,Alimentación,Delivery,"(?i)donas|comida|restaurante|pizz|hamburguesa|perro",regex,PERSONAL,Alimentación,Comida a domicilio,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R050,30,,Alimentación,Comer fuera,".*",regex,PERSONAL,Alimentación,Comer fuera,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R051,30,,Alimentación,Snacks,".*",regex,PERSONAL,Alimentación,Snacks / Antojos,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R052,30,,Comida rapida,,".*",regex,PERSONAL,Alimentación,Comida a domicilio,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R053,30,,Transporte,Transporte público,".*",regex,PERSONAL,Movilidad,Transporte público,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R054,30,,Transporte,,".*",regex,PERSONAL,Movilidad,Traslado personal,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R055,30,,Casa,Internet y Teléfono,"(?i)recarga|plan|movistar|digitel",regex,PERSONAL,Telecomunicaciones,Telefonía,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R056,30,,Casa,Internet y Teléfono,".*",regex,PERSONAL,Telecomunicaciones,Internet,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R057,30,,Impuestos y Finanzas,Comisiones bancarias,"(?i)pago m[oó]vil",regex,PERSONAL,Comisiones,Pago móvil,MARLON,COMISION,1,1,0,1,0,0,0,0,0,0
+R058,30,,Impuestos y Finanzas,Comisiones bancarias,".*",regex,PERSONAL,Comisiones,Bancarias,MARLON,COMISION,1,1,0,1,0,0,0,0,0,0
+R059,30,,Vestimenta,Ropa,".*",regex,PERSONAL,Vestimenta,Ropa,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R060,30,,Gastos Mayores,Tecnología,".*",regex,PERSONAL,Tecnología,Equipos,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R061,30,,Salud,Tratamientos,".*",regex,PERSONAL,Salud,Consultas,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R062,30,,Salud,Farmacia,".*",regex,PERSONAL,Salud,Medicinas,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R063,30,,Salud,,".*",regex,PERSONAL,Salud,Otros Salud,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R064,30,,Entretenimiento,,".*",regex,PERSONAL,Ocio,Entretenimiento,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
+R065,30,,CASHEA,,".*",regex,PERSONAL,Deuda / CASHEA,Cuota existente,MARLON,PAGO_DEUDA,1,0,0,1,0,0,0,1,0,0
+R066,30,,Otros ingresos,,".*",regex,PERSONAL,Ingresos,Otros,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
