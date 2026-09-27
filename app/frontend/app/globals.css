@@ -77,6 +77,54 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   color: var(--cyan);
 }
 
+.luka-page { display: flex; flex-direction: column; height: calc(100dvh - 122px); min-height: 520px; max-width: 900px; margin: 0 auto; }
+.luka-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border: 1px solid var(--border); border-radius: 16px 16px 0 0; background: rgba(17,36,69,.82); }
+.luka-header h1 { margin: 0; font-size: 1.3rem; letter-spacing: .08em; }
+.luka-header .eyebrow, .luka-header .subtle { margin: 0; }
+.luka-avatar { flex: 0 0 44px; display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(32,215,232,.4); border-radius: 14px; background: rgba(32,215,232,.1); color: var(--cyan); }
+.luka-avatar.large { width: 58px; height: 58px; margin: 0 auto; border-radius: 18px; }
+.luka-voice-toggle { display: flex; align-items: center; gap: 7px; margin-left: auto; color: var(--muted); font-size: .82rem; }
+.luka-chat { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 16px; padding: 22px clamp(14px,4vw,36px); border-inline: 1px solid var(--border); background: rgba(8,21,46,.48); }
+.luka-welcome { margin: auto; max-width: 600px; text-align: center; }
+.luka-welcome h2 { margin: 14px 0 5px; }
+.luka-welcome p { color: var(--muted); }
+.luka-prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+.luka-prompts button { min-height: 38px; font-size: .85rem; }
+.luka-message { display: flex; flex-direction: column; align-items: flex-start; max-width: min(88%, 620px); gap: 8px; }
+.luka-message.user { align-self: flex-end; align-items: flex-end; }
+.luka-bubble { padding: 12px 15px; border: 1px solid var(--border); border-radius: 16px 16px 16px 4px; background: var(--panel); white-space: pre-wrap; overflow-wrap: anywhere; }
+.luka-message.user .luka-bubble { border-color: rgba(32,215,232,.38); border-radius: 16px 16px 4px 16px; background: rgba(32,215,232,.1); }
+.luka-bubble p { margin: 0; }
+.luka-transcript { display: block; margin-bottom: 5px; color: var(--muted); font-size: .75rem; }
+.luka-play { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 0; border: 0; color: var(--cyan); background: none; font-size: .8rem; }
+.luka-card { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1px; overflow: hidden; min-width: min(100%,300px); border: 1px solid var(--border); border-radius: 12px; background: var(--border); }
+.luka-card > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; background: rgba(17,36,69,.95); }
+.luka-card span { color: var(--muted); font-size: .74rem; }
+.luka-card strong { font-size: .92rem; }
+.luka-thinking { align-self: flex-start; color: var(--muted); font-size: .86rem; }
+.luka-composer { display: flex; align-items: center; gap: 9px; padding: 12px; border: 1px solid var(--border); border-radius: 0 0 16px 16px; background: rgba(17,36,69,.82); }
+.luka-composer input { flex: 1; min-width: 0; height: 44px; padding: 0 13px; border: 1px solid var(--border); border-radius: 11px; outline: none; color: var(--text); background: var(--bg-2); }
+.luka-composer input:focus { border-color: var(--cyan); }
+.luka-mic { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; border: 1px solid var(--border); border-radius: 12px; color: var(--cyan); background: transparent; }
+.luka-recording { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-bottom: 0; background: var(--panel); }
+.luka-recording > :first-child { margin-right: auto; }
+.luka-record-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); }
+.luka-disclaimer { margin: 7px 0 0; color: var(--muted); text-align: center; font-size: .72rem; }
+@media (max-width: 640px) {
+  .luka-page { height: calc(100dvh - 112px); min-height: 420px; margin: 0 -12px; }
+  .luka-header { padding: 10px 12px; border-radius: 13px 13px 0 0; }
+  .luka-header .subtle { font-size: .8rem; }
+  .luka-voice-toggle { max-width: 106px; font-size: .7rem; }
+  .luka-chat { padding: 16px 12px; }
+  .luka-message { max-width: 94%; }
+  .luka-prompts { gap: 6px; }
+  .luka-prompts button { padding: 7px 10px; font-size: .78rem; }
+  .luka-composer { gap: 7px; padding: 9px; }
+  .luka-composer .primary-button { padding: 0 12px; }
+  .luka-composer .primary-button span { display: none; }
+  .luka-recording { flex-wrap: wrap; }
+}
+
 .nav-list { display: grid; gap: 6px; }
 
 .nav-item {

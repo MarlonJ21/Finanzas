@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
+from app.api.luka import router as luka_router
 from app.core.config import PROJECT_ROOT
 from app.services.etl import ensure_operational_db
 
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(router)
+    app.include_router(luka_router)
 
     frontend_out = PROJECT_ROOT / "app" / "frontend" / "out"
     if frontend_out.exists():

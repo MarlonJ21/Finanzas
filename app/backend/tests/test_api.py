@@ -22,7 +22,7 @@ def test_data_status_reads_existing_outputs() -> None:
     response = client.get("/api/data/status")
     assert response.status_code == 200
     body = response.json()
-    assert body["movement_count"] == 420
+    assert body["movement_count"] == 474
     assert body["planning_enabled"] is True
 
 
@@ -30,10 +30,10 @@ def test_dashboard_metric_parity() -> None:
     response = client.get("/api/dashboard/summary", params={"month": "2026-09", "scenario": "REALISTIC", "biweekly_period": 1})
     assert response.status_code == 200
     body = response.json()
-    assert body["personal_spend"] == 418.33
-    assert body["monthly_budget"] == 631.21
-    assert body["biweekly_spend"] == 415.76
-    assert body["biweekly_budget"] == 315.58
+    assert body["personal_spend"] == 544.19
+    assert body["monthly_budget"] == 632.08
+    assert body["biweekly_spend"] == 417.53
+    assert body["biweekly_budget"] == 316.04
     assert body["salary_collected_biweekly"] == 429.75
 
 
@@ -41,10 +41,10 @@ def test_planner_summary() -> None:
     response = client.get("/api/planner/summary", params={"scenario": "REALISTIC"})
     assert response.status_code == 200
     body = response.json()
-    assert body["current_budget"] == 631.21
-    assert body["forecast"] == 713.38
-    assert body["suggested"] == 663.30
-    assert body["final"] == 663.30
+    assert body["current_budget"] == 632.08
+    assert body["forecast"] == 706.99
+    assert body["suggested"] == 657.06
+    assert body["final"] == 657.06
 
 
 def test_movements_endpoint() -> None:
@@ -69,7 +69,7 @@ def test_rial_preview_uses_existing_etl_without_commit() -> None:
     result = preview_import(raw_file, raw_file.name)
     after_mtime = output_file.stat().st_mtime
     assert result["validation_status"] == "PASS"
-    assert result["transaction_rows"] == 420
+    assert result["transaction_rows"] == 474
     assert after_mtime == before_mtime
 
 

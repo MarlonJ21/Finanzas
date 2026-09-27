@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, CalendarDays, Home, Landmark, RefreshCw, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
+import { BarChart3, Bot, CalendarDays, Home, Landmark, RefreshCw, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
 import { useState } from "react";
 import { api, uploadRial, type DataStatus } from "../../lib/api";
 
 const nav = [
   { href: "/", label: "Inicio", icon: Home },
   { href: "/planner", label: "Planificador", icon: BarChart3 },
+  { href: "/luka", label: "LUKA", icon: Bot },
   { href: "/movements", label: "Movimientos", icon: Table2 },
   { href: "/settings", label: "Clasificación y Reglas", icon: SlidersHorizontal },
 ];
@@ -18,6 +19,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const status = useQuery({ queryKey: ["data-status"], queryFn: () => api<DataStatus>("/data/status") });
+  const lukaStatus = useQuery({ queryKey: ["luka-status"], queryFn: () => api<{ enabled: boolean }>("/luka/status"), retry: false });
+  const visibleNav = nav.filter((item) => item.href !== "/luka" || lukaStatus.data?.enabled === true);
 
   const monthName = status.data?.current_month
     ? (() => {
@@ -49,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark"><Landmark size={18} /></span>Finanzas</div>
         <nav className="nav-list">
-          {nav.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
             const isSettings = item.href === "/settings";
@@ -96,7 +99,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <nav className="mobile-bottom-nav">
-        {nav.map((item) => {
+        {visibleNav.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
           const isSettings = item.href === "/settings";
