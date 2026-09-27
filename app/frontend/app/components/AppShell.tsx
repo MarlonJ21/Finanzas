@@ -31,6 +31,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-shell">
+      <header className="mobile-header">
+        <div className="mobile-brand">
+          <span className="brand-mark"><Landmark size={18} /></span>
+          <span>Finanzas</span>
+        </div>
+        <div className="mobile-header-actions">
+          <span className="mobile-corte-pill">
+            {status.data?.cut_date ? `Corte ${status.data.cut_date.slice(5)}` : "Corte -"}
+          </span>
+          <button className="mobile-sync-btn" onClick={() => setOpen(true)} title="Actualizar RIAL" aria-label="Actualizar RIAL">
+            <Upload size={16} />
+          </button>
+        </div>
+      </header>
+
       <aside className="sidebar">
         <div className="brand"><span className="brand-mark"><Landmark size={18} /></span>Finanzas</div>
         <nav className="nav-list">
@@ -67,6 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button className="primary-button" onClick={() => setOpen(true)}><Upload size={16} />Actualizar RIAL</button>
         </div>
       </aside>
+
       <main className="shell-main">
         <div className="topbar">
           <div className="context-row">
@@ -78,6 +94,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         {children}
       </main>
+
+      <nav className="mobile-bottom-nav">
+        {nav.map((item) => {
+          const Icon = item.icon;
+          const active = pathname === item.href;
+          const isSettings = item.href === "/settings";
+          const shortLabel = item.label.split(" ")[0];
+          return (
+            <Link className={`bottom-nav-item ${active ? "active" : ""}`} href={item.href} key={item.href}>
+              <div className="bottom-nav-icon-wrap">
+                <Icon size={20} />
+                {isSettings && pendingCount > 0 ? (
+                  <span className="nav-badge-dot">{pendingCount}</span>
+                ) : null}
+              </div>
+              <span className="bottom-nav-label">{shortLabel}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
       {open ? <RialModal onClose={() => setOpen(false)} /> : null}
     </div>
   );
@@ -111,13 +148,14 @@ function RialModal({ onClose }: { onClose: () => void }) {
   const ready = status === "PASS";
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
+        <div className="sheet-handle" />
         <div className="modal-header">
           <div>
             <p className="eyebrow">Actualizar RIAL</p>
             <h1>Importa tu export financiero</h1>
-            <p className="subtle">Primero validamos el archivo. Tus datos se reemplazan solo despues de confirmar.</p>
+            <p className="subtle">Primero validamos el archivo. Tus datos se reemplazan solo después de confirmar.</p>
           </div>
           <button className="ghost-button" aria-label="Cerrar" onClick={onClose}><X size={18} /></button>
         </div>

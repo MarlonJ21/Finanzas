@@ -1,7 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Calendar,
+  Car,
+  CheckCircle2,
+  CreditCard,
+  DollarSign,
+  HeartPulse,
+  Home,
+  Laptop,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { api, money, pct, type Category, type DashboardSummary, type DataStatus } from "../lib/api";
 
 export default function HomePage() {
@@ -18,7 +35,16 @@ export default function HomePage() {
     enabled: !status.isLoading,
   });
 
-  if (status.isLoading || summary.isLoading || categories.isLoading) return <div className="page"><div className="skeleton" /><div className="skeleton" /><div className="skeleton" /></div>;
+  if (status.isLoading || summary.isLoading || categories.isLoading) {
+    return (
+      <div className="page">
+        <div className="skeleton" style={{ minHeight: 180 }} />
+        <div className="skeleton" style={{ minHeight: 120 }} />
+        <div className="skeleton" style={{ minHeight: 240 }} />
+      </div>
+    );
+  }
+
   if (!summary.data || !categories.data) throw new Error("HOME_DATA_ERROR");
 
   const monthLabel = status.data?.current_month
@@ -29,99 +55,209 @@ export default function HomePage() {
       })()
     : "Mes actual";
 
+  const cutDateStr = status.data?.cut_date ?? "";
+  const cutDay = cutDateStr ? parseInt(cutDateStr.slice(-2), 10) : 15;
+  const daysInMonth = 30;
+  const daysRemaining = Math.max(daysInMonth - cutDay, 0);
+
   const consumed = summary.data.monthly_consumed_pct;
   const qExcess = Math.max(summary.data.biweekly_spend - summary.data.biweekly_budget, 0);
   const exceeded = categories.data.filter((row) => row.status === "EXCEEDED");
   const noBudget = categories.data.filter((row) => row.status === "NO_BUDGET");
+
   const alerts = [
-    ...exceeded.slice(0, 3).map((row) => `${row.category} excede el presupuesto por ${money(Math.abs(row.available))}.`),
-    ...noBudget.slice(0, 2).map((row) => `${row.category} tiene gasto sin presupuesto.`),
-    ...(qExcess > 0 ? [`La quincena esta excedida por ${money(qExcess)}.`] : []),
-    ...(status.data?.pending_classification ? [`${status.data.pending_classification} movimientos pendientes de clasificacion.`] : [])
+    ...exceeded.slice(0, 3).map((row) => `${row.category} superó el presupuesto por ${money(Math.abs(row.available))}.`),
+    ...noBudget.slice(0, 2).map((row) => `${row.category} registra gasto sin presupuesto asignado.`),
+    ...(qExcess > 0 ? [`La quincena actual presenta un exceso de ${money(qExcess)}.`] : []),
+    ...(status.data?.pending_classification ? [`${status.data.pending_classification} movimientos requieren clasificación.`] : []),
   ];
-  const topCategories = [...categories.data].sort((a, b) => b.spent - a.spent).slice(0, 8);
+
+  const topCategories = [...categories.data].sort((a, b) => b.spent - a.spent).slice(0, 7);
+
+  // Health diagnosis narrative
+  let healthState: "good" | "warning" | "danger" = "good";
+  let healthText = "Ritmo Saludable";
+  let healthDesc = `Vas a buen ritmo. Te queda el ${pct(1 - consumed)} del presupuesto.`;
+
+  if (consumed >= 1 || qExcess > 0) {
+    healthState = "danger";
+    healthText = "Presupuesto al Límite";
+    healthDesc = `Has consumido el ${pct(consumed)} de tu presupuesto total este mes.`;
+  } else if (consumed >= 0.75) {
+    healthState = "warning";
+    healthText = "Atención al Ritmo";
+    healthDesc = `Has consumido el ${pct(consumed)}. Modera los gastos no esenciales.`;
+  }
+
+  const isPositiveBalance = summary.data.monthly_available >= 0;
 
   return (
     <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">{monthLabel}</p>
-          <h1>Estado financiero del mes</h1>
-          <p className="subtle">Tu resumen diario con presupuesto, gasto, quincena y alertas reales.</p>
-        </div>
-      </div>
-
-      <div className="surface hero-finance">
-        <div className="hero-grid">
-          <Metric label="Presupuesto" value={money(summary.data.monthly_budget)} />
-          <Metric label="Gastado" value={money(summary.data.personal_spend)} accent="cyan" />
-          <Metric label="Disponible" value={money(summary.data.monthly_available)} />
-          <Metric label="Consumido" value={pct(consumed)} accent={consumed >= 1 ? "red" : consumed >= .8 ? "yellow" : "green"} />
-          <Metric label="Safe to Spend" value={money(summary.data.safe_to_spend)} accent={summary.data.safe_to_spend > 0 ? "green" : "yellow"} note="Disponible seguro para gastar en la quincena." />
-        </div>
-        <div className="progress-block">
-          <div>
-            <h2>Progreso del mes</h2>
-            <p className="subtle">Gastado {money(summary.data.personal_spend)} de {money(summary.data.monthly_budget)}</p>
+      {/* 1. HERO STORY CARD: Tu pulso financiero en 3 segundos */}
+      <div className="story-hero">
+        <div className="story-header">
+          <div className="story-period">
+            <Calendar size={15} />
+            <span>{monthLabel} · Corte {cutDateStr ? cutDateStr.slice(5) : "-"}</span>
           </div>
-          <div className="progress-track"><div className="progress-fill" style={{ width: `${Math.max(0, Math.min(consumed * 100, 100))}%` }} /></div>
-          <strong>{pct(consumed)}</strong>
+          <div className={`health-badge ${healthState}`}>
+            {healthState === "good" ? <Sparkles size={13} /> : healthState === "warning" ? <AlertTriangle size={13} /> : <AlertCircle size={13} />}
+            <span>{healthText}</span>
+          </div>
+        </div>
+
+        <div className="story-main">
+          <span className="story-label">Disponible para gastar</span>
+          <div className={`story-amount ${isPositiveBalance ? "positive" : "negative"}`}>
+            {isPositiveBalance ? "+" : ""}{money(summary.data.monthly_available)}
+          </div>
+          <span className="story-subtext">
+            {healthDesc}
+          </span>
+        </div>
+
+        <div className="story-progress-box">
+          <div className="story-progress-stats">
+            <span>
+              <strong>{money(summary.data.personal_spend)}</strong> <span className="subtle">gastado</span>
+            </span>
+            <span>
+              <span className="subtle">de </span><strong>{money(summary.data.monthly_budget)}</strong>
+            </span>
+          </div>
+
+          <div className="story-progress-track">
+            <div
+              className={`story-progress-bar ${healthState}`}
+              style={{ width: `${Math.max(0, Math.min(consumed * 100, 100))}%` }}
+            />
+          </div>
+
+          <div className="story-narrative-note">
+            <span>{pct(consumed)} consumido</span>
+            <span>•</span>
+            <span>{daysRemaining > 0 ? `${daysRemaining} días restantes` : "Cierre de mes"}</span>
+          </div>
         </div>
       </div>
 
-      <div className="content-grid">
-        <div className="surface panel-pad">
-          <h2>¿Dónde se está yendo tu dinero?</h2>
-          <div className="category-list">
-            {topCategories.map((row) => (
-              <div className="category-row" key={`${row.category}-${row.subcategory}`}>
-                <div><strong>{row.category}</strong><div className="subtle">{row.subcategory}</div></div>
-                <div><strong>{money(row.spent)}</strong><div className="subtle">de {money(row.budget)}</div></div>
-                <div className="progress-track"><div className="progress-fill" style={{ width: `${Math.max(0, Math.min(row.consumed_pct * 100, 100))}%` }} /></div>
-                <StatusChip status={row.status} />
+      {/* 2. BRÚJULA DE DECISIÓN RÁPIDA: Quincena & Gasto Seguro */}
+      <div className="decision-grid">
+        <div className="decision-card">
+          <div className="decision-top">
+            <span className="decision-title">Esta Quincena</span>
+            <div className="decision-icon">
+              <Wallet size={18} />
+            </div>
+          </div>
+          <div className="decision-val">
+            {money(summary.data.biweekly_available)}
+          </div>
+          <div className="decision-desc">
+            {qExcess > 0 ? (
+              <span className="red">Exceso {money(qExcess)}</span>
+            ) : (
+              <span>Gastado {money(summary.data.biweekly_spend)} de {money(summary.data.biweekly_budget)}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="decision-card">
+          <div className="decision-top">
+            <span className="decision-title">Safe to Spend</span>
+            <div className="decision-icon green">
+              <ShieldCheck size={18} />
+            </div>
+          </div>
+          <div className="decision-val green">
+            {money(summary.data.safe_to_spend)}
+          </div>
+          <div className="decision-desc">
+            <span>Límite seguro para gastar sin tocar tus ahorros ni cuotas fijas.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. DÓNDE SE ESTÁ YENDO TU DINERO (Top Gastos) */}
+      <div>
+        <div className="section-title-wrap">
+          <h2 className="section-title">¿Dónde se fue tu dinero?</h2>
+          <span className="subtle" style={{ fontSize: 12 }}>Top categorías</span>
+        </div>
+
+        <div className="category-stack">
+          {topCategories.map((row) => {
+            const Icon = getCategoryIcon(row.category, row.subcategory);
+            const isOver = row.consumed_pct >= 1;
+            const isNear = row.consumed_pct >= 0.8 && row.consumed_pct < 1;
+            const barClass = isOver ? "var(--red)" : isNear ? "var(--yellow)" : "var(--cyan)";
+
+            return (
+              <div className="cat-card" key={`${row.category}-${row.subcategory}`}>
+                <div className="cat-icon-wrap">
+                  <Icon size={20} />
+                </div>
+                <div className="cat-details">
+                  <div className="cat-header-line">
+                    <span className="cat-name">{row.category}</span>
+                    <span className="cat-spent">{money(row.spent)}</span>
+                  </div>
+                  <div className="cat-header-line">
+                    <span className="cat-subname">{row.subcategory}</span>
+                    <span className="cat-budget-line">de {money(row.budget)} ({pct(row.consumed_pct)})</span>
+                  </div>
+                  <div className="cat-bar-track">
+                    <div
+                      className="cat-bar-fill"
+                      style={{
+                        width: `${Math.max(0, Math.min(row.consumed_pct * 100, 100))}%`,
+                        background: barClass,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. SALUD FINANCIERA & ALERTAS */}
+      <div>
+        <div className="section-title-wrap">
+          <h2 className="section-title">Salud y Control</h2>
+        </div>
+
+        {alerts.length > 0 ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            {alerts.map((alert) => (
+              <div className="alert-item-card" key={alert}>
+                <AlertTriangle size={18} style={{ color: "var(--yellow)", flexShrink: 0, marginTop: 1 }} />
+                <span>{alert}</span>
               </div>
             ))}
           </div>
-        </div>
-
-        <aside className="page">
-          <div className="surface panel-pad">
-            <h2>Esta quincena</h2>
-            <div className="detail-grid">
-              <Metric label="Presupuesto Q" value={money(summary.data.biweekly_budget)} />
-              <Metric label="Gastado Q" value={money(summary.data.biweekly_spend)} accent={qExcess > 0 ? "red" : "cyan"} />
-              <Metric label="Disponible Q" value={money(summary.data.biweekly_available)} accent={summary.data.biweekly_available < 0 ? "red" : "green"} />
-              <Metric label="Salario cobrado" value={money(summary.data.salary_collected_biweekly)} />
+        ) : (
+          <div className="health-positive-card">
+            <CheckCircle2 size={24} style={{ color: "var(--green)", flexShrink: 0 }} />
+            <div>
+              <strong style={{ display: "block", fontSize: 14 }}>¡Todo bajo control!</strong>
+              <span className="subtle">No tienes categorías sobregiradas ni movimientos pendientes de clasificar.</span>
             </div>
-            {qExcess > 0 ? <p className="red" style={{ marginTop: 14 }}><strong>Exceso {money(qExcess)}</strong></p> : null}
           </div>
-
-          {alerts.length ? (
-            <div className="surface panel-pad">
-              <h2><AlertTriangle size={18} /> Atencion</h2>
-              <div className="alert-list">{alerts.map((alert) => <div className="alert-item" key={alert}>{alert}</div>)}</div>
-            </div>
-          ) : (
-            <div className="surface panel-pad empty-state"><div><h2>Sin alertas</h2><p>Todo lo importante esta bajo control.</p></div></div>
-          )}
-        </aside>
+        )}
       </div>
     </section>
   );
 }
 
-function Metric({ label, value, accent, note }: { label: string; value: string; accent?: string; note?: string }) {
-  return <div className="metric-tile"><div className="metric-label">{label}</div><div className={`metric-value ${accent ?? ""}`}>{value}</div>{note ? <div className="metric-note">{note}</div> : null}</div>;
-}
-
-function StatusChip({ status }: { status: string }) {
-  const map: Record<string, [string, string]> = {
-    WITHIN: ["Dentro", "status-within"],
-    NEAR_LIMIT: ["Cerca", "status-near"],
-    EXCEEDED: ["Excede", "status-exceeded"],
-    NO_BUDGET: ["Sin presupuesto", "status-exceeded"],
-    NO_ACTIVITY: ["Sin actividad", "status-muted"]
-  };
-  const [label, cls] = map[status] ?? [status, "status-muted"];
-  return <span className={`status-chip ${cls}`}>{label}</span>;
+function getCategoryIcon(category: string, subcategory: string) {
+  const c = `${category} ${subcategory}`.toLowerCase();
+  if (c.includes("aliment") || c.includes("comida") || c.includes("super") || c.includes("snack") || c.includes("cena")) return ShoppingBag;
+  if (c.includes("movilidad") || c.includes("transporte") || c.includes("uber") || c.includes("gasolina") || c.includes("taxi") || c.includes("traslado")) return Car;
+  if (c.includes("suscrip") || c.includes("herramienta") || c.includes("software") || c.includes("internet") || c.includes("streaming")) return Laptop;
+  if (c.includes("salud") || c.includes("farmacia") || c.includes("medico") || c.includes("clinica")) return HeartPulse;
+  if (c.includes("casa") || c.includes("hogar") || c.includes("alquiler") || c.includes("servicios")) return Home;
+  if (c.includes("deuda") || c.includes("cashea") || c.includes("prestamo") || c.includes("tarjeta")) return CreditCard;
+  return DollarSign;
 }
