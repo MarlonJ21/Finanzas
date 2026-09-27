@@ -155,7 +155,16 @@ export type DashboardSummary = {
   biweekly_available: number;
   safe_to_spend: number;
   salary_collected_biweekly: number;
+  biweekly_period?: number;
+  rate_bcv?: number;
+  rate_usdt?: number;
 };
+
+export function bs(usd: number | null | undefined, rate: number = 857.01): string {
+  const amount = Number(usd ?? 0) * rate;
+  const formatted = Math.abs(amount).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${amount < 0 ? "-" : ""}Bs. ${formatted}`;
+}
 
 export type Category = {
   category: string;

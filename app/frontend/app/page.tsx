@@ -1,17 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   AlertTriangle,
+  ArrowRight,
+  ArrowUpRight,
+  Banknote,
   Calendar,
   Car,
   CheckCircle2,
+  ChevronRight,
+  Coins,
   CreditCard,
   DollarSign,
   HeartPulse,
   Home,
+  Info,
   Laptop,
+  Scale,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
@@ -19,9 +27,13 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { api, money, pct, type Category, type DashboardSummary, type DataStatus } from "../lib/api";
+import { useState } from "react";
+import { api, bs, money, pct, type Category, type DashboardSummary, type DataStatus } from "../lib/api";
 
 export default function HomePage() {
+  const [currencyMode, setCurrencyMode] = useState<"USD" | "VES">("USD");
+  const [showExplanation, setShowExplanation] = useState(false);
+
   const status = useQuery({ queryKey: ["data-status"], queryFn: () => api<DataStatus>("/data/status") });
   const currentMonth = status.data?.current_month?.slice(0, 7);
   const summary = useQuery({
@@ -65,35 +77,83 @@ export default function HomePage() {
   const exceeded = categories.data.filter((row) => row.status === "EXCEEDED");
   const noBudget = categories.data.filter((row) => row.status === "NO_BUDGET");
 
-  const alerts = [
-    ...exceeded.slice(0, 3).map((row) => `${row.category} superó el presupuesto por ${money(Math.abs(row.available))}.`),
-    ...noBudget.slice(0, 2).map((row) => `${row.category} registra gasto sin presupuesto asignado.`),
-    ...(qExcess > 0 ? [`La quincena actual presenta un exceso de ${money(qExcess)}.`] : []),
-    ...(status.data?.pending_classification ? [`${status.data.pending_classification} movimientos requieren clasificación.`] : []),
+  // Rich clickable alert objects
+  const structuredAlerts: { category: string; message: string; subtext: string; type: "exceeded" | "no_budget" | "quincena" }[] = [
+    ...exceeded.map((row) => ({
+      category: row.category,
+      message: `${row.category} superó el presupuesto por ${money(Math.abs(row.available))}`,
+      subtext: `Gastaste ${money(row.spent)} de una meta de ${money(row.budget)}. Toca para ver movimientos.`,
+      type: "exceeded" as const,
+    })),
+    ...noBudget.map((row) => ({
+      category: row.category,
+      message: `${row.category} registra gasto sin presupuesto`,
+      subtext: `Se registraron ${money(row.spent)} sin presupuesto planificado. Toca para ver movimientos.`,
+      type: "no_budget" as const,
+    })),
+    ...(qExcess > 0
+      ? [
+          {
+            category: "Quincena",
+            message: `Quincena actual con sobregiro de ${money(qExcess)}`,
+            subtext: `Gastaste ${money(summary.data.biweekly_spend)} en esta quincena. Toca para auditar movimientos.`,
+            type: "quincena" as const,
+          },
+        ]
+      : []),
   ];
 
-  const topCategories = [...categories.data].sort((a, b) => b.spent - a.spent).slice(0, 7);
+  const topCategories = [...categories.data].sort((a, b) => b.spent - a.spent).slice(0, 8);
+
+  // FX Rates
+  const rateBcv = summary.data.rate_bcv || 857.01;
+  const rateUsdt = summary.data.rate_usdt || 960.05;
+  const fxSpreadPct = rateBcv > 0 ? ((rateUsdt - rateBcv) / rateBcv) * 100 : 0;
 
   // Health diagnosis narrative
   let healthState: "good" | "warning" | "danger" = "good";
   let healthText = "Ritmo Saludable";
-  let healthDesc = `Vas a buen ritmo. Te queda el ${pct(1 - consumed)} del presupuesto.`;
+  let healthDesc = `Vas a buen ritmo. Te queda el ${pct(1 - consumed)} de tu presupuesto total.`;
 
   if (consumed >= 1 || qExcess > 0) {
     healthState = "danger";
     healthText = "Presupuesto al Límite";
-    healthDesc = `Has consumido el ${pct(consumed)} de tu presupuesto total este mes.`;
+    healthDesc = `Has consumido el ${pct(consumed)} de tu presupuesto mensual.`;
   } else if (consumed >= 0.75) {
     healthState = "warning";
     healthText = "Atención al Ritmo";
-    healthDesc = `Has consumido el ${pct(consumed)}. Modera los gastos no esenciales.`;
+    healthDesc = `Has consumido el ${pct(consumed)}. Modera los gastos no esenciales para cerrar el mes.`;
   }
 
   const isPositiveBalance = summary.data.monthly_available >= 0;
 
   return (
     <section className="page">
-      {/* 1. HERO STORY CARD: Tu pulso financiero en 3 segundos */}
+      {/* 1. TASAS DE CAMBIO EN VENEZUELA (BCV vs USDT) */}
+      <div className="surface-lite fx-rates-strip">
+        <div className="fx-rates-left">
+          <div className="fx-rate-item">
+            <span className="fx-flag">🏛️ BCV</span>
+            <strong>{rateBcv.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+          <div className="fx-divider" />
+          <div className="fx-rate-item">
+            <span className="fx-flag">🟡 USDT</span>
+            <strong>{rateUsdt.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+          </div>
+          <span className="fx-spread-badge">+{fxSpreadPct.toFixed(1)}%</span>
+        </div>
+        <button
+          className="fx-toggle-btn"
+          onClick={() => setCurrencyMode((prev) => (prev === "USD" ? "VES" : "USD"))}
+          title="Alternar vista en Bolívares o Dólares"
+        >
+          <Coins size={14} />
+          <span>Ver en {currencyMode === "USD" ? "Bs." : "USD"}</span>
+        </button>
+      </div>
+
+      {/* 2. HERO STORY CARD: Tu disponible protagonista */}
       <div className="story-hero">
         <div className="story-header">
           <div className="story-period">
@@ -107,14 +167,60 @@ export default function HomePage() {
         </div>
 
         <div className="story-main">
-          <span className="story-label">Disponible para gastar</span>
-          <div className={`story-amount ${isPositiveBalance ? "positive" : "negative"}`}>
-            {isPositiveBalance ? "+" : ""}{money(summary.data.monthly_available)}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="story-label">Disponible para el resto del mes</span>
+            <button
+              className="ghost-button"
+              style={{ padding: 4, height: 26, fontSize: 11, gap: 4 }}
+              onClick={() => setShowExplanation(!showExplanation)}
+            >
+              <Info size={14} />
+              <span>¿Cómo se calcula?</span>
+            </button>
           </div>
-          <span className="story-subtext">
-            {healthDesc}
-          </span>
+
+          <div className={`story-amount ${isPositiveBalance ? "positive" : "negative"}`}>
+            {currencyMode === "USD" ? (
+              <>
+                {isPositiveBalance ? "+" : ""}{money(summary.data.monthly_available)}
+              </>
+            ) : (
+              <>
+                {isPositiveBalance ? "+" : ""}{bs(summary.data.monthly_available, rateBcv)}
+              </>
+            )}
+          </div>
+
+          {/* Conversión de tasas simultánea si está en modo VES o USD */}
+          <div className="story-fx-conversions">
+            <span>En BCV: <strong>{bs(summary.data.monthly_available, rateBcv)}</strong></span>
+            <span>•</span>
+            <span>En USDT: <strong>{bs(summary.data.monthly_available, rateUsdt)}</strong></span>
+          </div>
+
+          <span className="story-subtext">{healthDesc}</span>
         </div>
+
+        {/* Modal/Banner explicativo si el usuario pulsa ¿Cómo se calcula? */}
+        {showExplanation && (
+          <div className="explanation-callout">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <strong>💡 Entendiendo tus números:</strong>
+              <button className="ghost-button" style={{ padding: 2 }} onClick={() => setShowExplanation(false)}>✕</button>
+            </div>
+            <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 12, lineHeight: 1.5 }}>
+              <li>
+                <strong>Disponible del Mes ({money(summary.data.monthly_available)}):</strong> Es lo que te queda en total de tu presupuesto mensual ({money(summary.data.monthly_budget)} presupuesto menos {money(summary.data.personal_spend)} gastados).
+              </li>
+              <li>
+                <strong>Esta Quincena ({money(summary.data.biweekly_available)} margen teórico):</strong> Asignado para la Quincena {summary.data.biweekly_period ?? 2} ({money(summary.data.biweekly_budget)}) menos lo gastado en estos 15 días ({money(summary.data.biweekly_spend)}).
+              </li>
+              <li>
+                <strong>Safe to Spend / Gasto Seguro ({money(summary.data.safe_to_spend)}):</strong> Es lo que verdaderamente puedes gastar hoy con seguridad. Si en la 1ra quincena hubo sobregiro, tu gasto seguro no puede superar lo que te queda en el mes. Por eso está topado a <strong>{money(summary.data.safe_to_spend)}</strong>.
+              </li>
+            </ul>
+          </div>
+        )}
 
         <div className="story-progress-box">
           <div className="story-progress-stats">
@@ -141,7 +247,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 2. BRÚJULA DE DECISIÓN RÁPIDA: Quincena & Gasto Seguro */}
+      {/* 3. BRÚJULA DE DECISIÓN RÁPIDA: Quincena & Gasto Seguro */}
       <div className="decision-grid">
         <div className="decision-card">
           <div className="decision-top">
@@ -151,11 +257,11 @@ export default function HomePage() {
             </div>
           </div>
           <div className="decision-val">
-            {money(summary.data.biweekly_available)}
+            {currencyMode === "USD" ? money(summary.data.biweekly_available) : bs(summary.data.biweekly_available, rateBcv)}
           </div>
           <div className="decision-desc">
             {qExcess > 0 ? (
-              <span className="red">Exceso {money(qExcess)}</span>
+              <span className="red">Exceso de {money(qExcess)}</span>
             ) : (
               <span>Gastado {money(summary.data.biweekly_spend)} de {money(summary.data.biweekly_budget)}</span>
             )}
@@ -170,19 +276,19 @@ export default function HomePage() {
             </div>
           </div>
           <div className="decision-val green">
-            {money(summary.data.safe_to_spend)}
+            {currencyMode === "USD" ? money(summary.data.safe_to_spend) : bs(summary.data.safe_to_spend, rateBcv)}
           </div>
           <div className="decision-desc">
-            <span>Límite seguro para gastar sin tocar tus ahorros ni cuotas fijas.</span>
+            <span>Gasto seguro real topado al saldo disponible del mes.</span>
           </div>
         </div>
       </div>
 
-      {/* 3. DÓNDE SE ESTÁ YENDO TU DINERO (Top Gastos) */}
+      {/* 4. DÓNDE SE ESTÁ YENDO TU DINERO (Con enlace interactivo a Movimientos) */}
       <div>
         <div className="section-title-wrap">
           <h2 className="section-title">¿Dónde se fue tu dinero?</h2>
-          <span className="subtle" style={{ fontSize: 12 }}>Top categorías</span>
+          <span className="subtle" style={{ fontSize: 12 }}>Toca para ver detalle</span>
         </div>
 
         <div className="category-stack">
@@ -193,7 +299,12 @@ export default function HomePage() {
             const barClass = isOver ? "var(--red)" : isNear ? "var(--yellow)" : "var(--cyan)";
 
             return (
-              <div className="cat-card" key={`${row.category}-${row.subcategory}`}>
+              <Link
+                href={`/movements?category=${encodeURIComponent(row.category)}`}
+                className="cat-card clickable-cat-card"
+                key={`${row.category}-${row.subcategory}`}
+                title={`Ver movimientos de ${row.category}`}
+              >
                 <div className="cat-icon-wrap">
                   <Icon size={20} />
                 </div>
@@ -204,7 +315,9 @@ export default function HomePage() {
                   </div>
                   <div className="cat-header-line">
                     <span className="cat-subname">{row.subcategory}</span>
-                    <span className="cat-budget-line">de {money(row.budget)} ({pct(row.consumed_pct)})</span>
+                    <span className="cat-budget-line">
+                      de {money(row.budget)} ({pct(row.consumed_pct)})
+                    </span>
                   </div>
                   <div className="cat-bar-track">
                     <div
@@ -216,32 +329,45 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
-              </div>
+                <ChevronRight size={18} className="cat-chevron" />
+              </Link>
             );
           })}
         </div>
       </div>
 
-      {/* 4. SALUD FINANCIERA & ALERTAS */}
+      {/* 5. SALUD FINANCIERA & ALERTAS CLICKEABLES */}
       <div>
         <div className="section-title-wrap">
-          <h2 className="section-title">Salud y Control</h2>
+          <h2 className="section-title">Alertas y Salud de tus Gastos</h2>
+          <span className="subtle" style={{ fontSize: 12 }}>Toca para auditar</span>
         </div>
 
-        {alerts.length > 0 ? (
+        {structuredAlerts.length > 0 ? (
           <div style={{ display: "grid", gap: 10 }}>
-            {alerts.map((alert) => (
-              <div className="alert-item-card" key={alert}>
-                <AlertTriangle size={18} style={{ color: "var(--yellow)", flexShrink: 0, marginTop: 1 }} />
-                <span>{alert}</span>
-              </div>
+            {structuredAlerts.map((alert, idx) => (
+              <Link
+                href={alert.category === "Quincena" ? "/movements" : `/movements?category=${encodeURIComponent(alert.category)}`}
+                className="alert-item-card clickable-alert"
+                key={`${alert.category}-${idx}`}
+                title="Toca para ver los movimientos de este gasto"
+              >
+                <AlertTriangle size={20} style={{ color: "var(--yellow)", flexShrink: 0, marginTop: 2 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <strong style={{ display: "block", color: "#ffffff", fontSize: 13.5 }}>{alert.message}</strong>
+                  <span className="subtle" style={{ display: "block", fontSize: 12, marginTop: 2 }}>
+                    {alert.subtext}
+                  </span>
+                </div>
+                <ArrowRight size={16} style={{ color: "var(--cyan)", flexShrink: 0, alignSelf: "center" }} />
+              </Link>
             ))}
           </div>
         ) : (
           <div className="health-positive-card">
             <CheckCircle2 size={24} style={{ color: "var(--green)", flexShrink: 0 }} />
             <div>
-              <strong style={{ display: "block", fontSize: 14 }}>¡Todo bajo control!</strong>
+              <strong style={{ display: "block", fontSize: 14 }}>¡Todo bajo control este mes!</strong>
               <span className="subtle">No tienes categorías sobregiradas ni movimientos pendientes de clasificar.</span>
             </div>
           </div>

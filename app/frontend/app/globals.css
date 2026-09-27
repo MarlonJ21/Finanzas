@@ -36,6 +36,9 @@ button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 
+.mobile-only { display: none !important; }
+.desktop-only { display: block; }
+
 .app-shell {
   display: grid;
   grid-template-columns: 208px minmax(0, 1fr);
@@ -616,6 +619,14 @@ h2 { margin-bottom: 6px; font-size: 18px; font-weight: 800; }
     display: none !important;
   }
 
+  .mobile-only {
+    display: block !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
   .mobile-header {
     display: flex;
     align-items: center;
@@ -824,4 +835,256 @@ h2 { margin-bottom: 6px; font-size: 18px; font-weight: 800; }
   to {
     transform: translateY(0);
   }
+}
+
+/* =========================================================
+   FX RATES STRIP & CALLOUT
+   ========================================================= */
+
+.fx-rates-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(8, 21, 46, 0.45);
+  border: 1px solid rgba(39, 68, 108, 0.35);
+  flex-wrap: wrap;
+}
+
+.fx-rates-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.fx-rate-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fx-flag {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fx-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(120, 133, 158, 0.3);
+}
+
+.fx-spread-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(32, 215, 232, 0.12);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border: 1px solid rgba(32, 215, 232, 0.25);
+}
+
+.fx-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(32, 215, 232, 0.1);
+  border: 1px solid rgba(32, 215, 232, 0.3);
+  color: var(--cyan);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform 100ms var(--ease-out), background 120ms ease;
+}
+
+.fx-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.story-fx-conversions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.story-fx-conversions strong {
+  color: #ffffff;
+}
+
+.explanation-callout {
+  background: rgba(8, 21, 46, 0.88);
+  border: 1px solid rgba(32, 215, 232, 0.35);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 6px 0;
+  color: var(--text);
+  animation: fadeIn 200ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.clickable-cat-card, .clickable-alert {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms var(--ease-out), border-color 120ms ease, background 120ms ease;
+}
+
+.clickable-cat-card:hover {
+  border-color: rgba(32, 215, 232, 0.45);
+  background: rgba(17, 36, 69, 0.75);
+}
+
+.clickable-cat-card:active, .clickable-alert:active {
+  transform: scale(0.975);
+}
+
+.cat-chevron {
+  color: var(--muted);
+  opacity: 0.5;
+  transition: transform 120ms ease, opacity 120ms ease;
+  flex-shrink: 0;
+}
+
+.clickable-cat-card:hover .cat-chevron {
+  opacity: 1;
+  transform: translateX(3px);
+  color: var(--cyan);
+}
+
+.clickable-alert:hover {
+  background: rgba(245, 197, 66, 0.12);
+  border-color: var(--yellow);
+}
+
+/* =========================================================
+   TRANSACTION FEED (FINTECH CARDS FOR MOVEMENTS)
+   ========================================================= */
+
+.tx-feed {
+  display: grid;
+  gap: 10px;
+}
+
+.tx-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(13, 29, 58, 0.65);
+  border: 1px solid rgba(39, 68, 108, 0.35);
+  transition: background 120ms ease, transform 100ms var(--ease-out);
+}
+
+.tx-card:active {
+  transform: scale(0.98);
+}
+
+.tx-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tx-icon.egreso {
+  background: rgba(255, 94, 103, 0.12);
+  color: var(--red);
+}
+
+.tx-icon.ingreso {
+  background: rgba(51, 230, 164, 0.12);
+  color: var(--green);
+}
+
+.tx-icon.transf {
+  background: rgba(32, 215, 232, 0.12);
+  color: var(--cyan);
+}
+
+.tx-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tx-desc {
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.tx-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.tx-account-pill {
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 750;
+  background: rgba(39, 68, 108, 0.45);
+  color: var(--text);
+}
+
+.tx-amount {
+  font-size: 15px;
+  font-weight: 850;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.filter-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 750;
+  background: rgba(8, 21, 46, 0.6);
+  border: 1px solid rgba(39, 68, 108, 0.5);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 120ms ease;
+}
+
+.filter-chip.active {
+  background: rgba(32, 215, 232, 0.15);
+  color: var(--cyan);
+  border-color: rgba(32, 215, 232, 0.4);
 }

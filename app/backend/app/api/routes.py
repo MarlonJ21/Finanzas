@@ -144,24 +144,50 @@ def dashboard_summary(
     income_sustainable = sustainable_income(month=like)
     monthly_budget = as_float(budget.get("v"))
     personal_spend = as_float(spend.get("v"))
+    monthly_available = as_float(monthly_budget - personal_spend)
     biweekly_budget = as_float(bi_budget.get("v"))
     biweekly_spend = as_float(bi_spend.get("v"))
+    biweekly_available = as_float(biweekly_budget - biweekly_spend)
+
+    # Safe to spend is strictly constrained by BOTH the quincena availability and remaining monthly budget
+    safe_to_spend = as_float(max(min(monthly_available, biweekly_available), 0))
     saving_target = as_float(income_sustainable - monthly_budget)
+
+    # Query latest registered FX rates from data
+    bcv_res = query_one(
+        """
+        SELECT TasaRegistrada AS v FROM movimientos
+        WHERE MonedaOriginal='VES' AND TasaRegistrada > 0 AND Cuenta IN ('BNC', 'Bancamiga', 'Efectivo')
+        ORDER BY Fecha DESC, Hora DESC LIMIT 1
+        """
+    )
+    usdt_res = query_one(
+        """
+        SELECT TasaRegistrada AS v FROM movimientos
+        WHERE Cuenta='Binance' AND TasaRegistrada > 800
+        ORDER BY Fecha DESC, Hora DESC LIMIT 1
+        """
+    )
+    rate_bcv = as_float(bcv_res.get("v")) or 857.01
+    rate_usdt = as_float(usdt_res.get("v")) or 960.05
+
     return {
         "income_sustainable": income_sustainable,
         "salary_collected": as_float(salary.get("v")),
         "personal_spend": personal_spend,
         "monthly_budget": monthly_budget,
-        "monthly_available": as_float(monthly_budget - personal_spend),
+        "monthly_available": monthly_available,
         "monthly_consumed_pct": as_pct(personal_spend / monthly_budget if monthly_budget else 0),
         "biweekly_spend": biweekly_spend,
         "biweekly_budget": biweekly_budget,
-        "biweekly_available": as_float(biweekly_budget - biweekly_spend),
-        "safe_to_spend": as_float(max(biweekly_budget - biweekly_spend, 0)),
+        "biweekly_available": biweekly_available,
+        "safe_to_spend": safe_to_spend,
         "saving_target": saving_target,
         "saving_rate": as_pct(saving_target / income_sustainable if income_sustainable else 0),
         "biweekly_period": q,
         "salary_collected_biweekly": as_float(salary_q.get("v")),
+        "rate_bcv": rate_bcv,
+        "rate_usdt": rate_usdt,
     }
 
 
