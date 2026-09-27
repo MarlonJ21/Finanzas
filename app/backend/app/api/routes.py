@@ -412,7 +412,7 @@ async def rial_preview(file: UploadFile = File(...)) -> dict[str, Any]:
     path = await save_upload(file)
     try:
         return preview_import(path, file.filename or "upload.csv")
-    except ValueError as exc:
+    except Exception as exc:
         return {
             "filename": file.filename,
             "validation_status": "FAIL",
@@ -426,7 +426,7 @@ async def rial_commit(file: UploadFile = File(...), force: bool = False) -> dict
     path = await save_upload(file)
     try:
         return commit_import(path, file.filename or "upload.csv", force=force)
-    except ValueError as exc:
+    except Exception as exc:
         return {"filename": file.filename, "commit_status": "FAIL", "errors": [str(exc)], "rollback": True}
 
 

@@ -100,8 +100,8 @@ function RialModal({ onClose }: { onClose: () => void }) {
       if (mode === "commit" && response.commit_status === "PASS") {
         await queryClient.invalidateQueries();
       }
-    } catch {
-      setError("Esta vista publicada es de solo lectura. Para importar RIAL, abre la app local con tu backend encendido.");
+    } catch (err: any) {
+      setError(err?.message || "Error al procesar el archivo. Revisa que el backend esté disponible.");
     } finally {
       setBusy(null);
     }

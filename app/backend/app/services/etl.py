@@ -119,9 +119,14 @@ def validate_csv_file(path: Path, original_name: str) -> dict[str, Any]:
 def run_existing_pipeline(workspace: Path) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["PYTHONUTF8"] = "1"
-    return subprocess.run(
-        [
-            "uv",
+    src_dir = (workspace / "src").resolve()
+    existing_pp = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{src_dir}{os.pathsep}{existing_pp}" if existing_pp else str(src_dir)
+
+    uv_bin = shutil.which("uv")
+    if uv_bin:
+        cmd = [
+            uv_bin,
             "run",
             "--with",
             "pandas",
@@ -131,13 +136,26 @@ def run_existing_pipeline(workspace: Path) -> subprocess.CompletedProcess[str]:
             "numpy",
             "python",
             "src/main.py",
-        ],
-        cwd=workspace,
-        env=env,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+        ]
+    else:
+        cmd = [sys.executable, "src/main.py"]
+
+    try:
+        return subprocess.run(
+            cmd,
+            cwd=workspace,
+            env=env,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except Exception as exc:
+        return subprocess.CompletedProcess(
+            args=cmd,
+            returncode=1,
+            stdout="",
+            stderr=f"Error executing pipeline: {exc}",
+        )
 
 
 def parse_rial_csv_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:

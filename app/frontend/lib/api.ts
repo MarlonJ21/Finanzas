@@ -16,7 +16,6 @@ export const API_BASE = "http://127.0.0.1:8000/api";
 
 export async function api<T>(path: string): Promise<T> {
   const fallback = snapshotFor(path);
-  if (!shouldUseLocalApi() && fallback !== undefined) return fallback as T;
   try {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 6000);
@@ -36,13 +35,23 @@ export async function api<T>(path: string): Promise<T> {
 export async function uploadRial(mode: "preview" | "commit", file: File): Promise<Record<string, any>> {
   const form = new FormData();
   form.append("file", file);
-  try {
-    const res = await fetch(`${getApiBase()}/import/rial/${mode}`, { method: "POST", body: form });
-    if (!res.ok) throw new Error("RIAL_UPLOAD_FAILED");
-    return res.json();
-  } catch {
-    throw new Error("LOCAL_API_REQUIRED");
+  const res = await fetch(`${getApiBase()}/import/rial/${mode}`, { method: "POST", body: form });
+  if (!res.ok) {
+    let msg = `Error ${res.status} al procesar archivo`;
+    try {
+      const data = await res.json();
+      if (data.errors && data.errors.length) {
+        msg = data.errors.join(", ");
+      } else if (data.detail) {
+        msg = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+      }
+    } catch {
+      const text = await res.text().catch(() => "");
+      if (text) msg = text;
+    }
+    throw new Error(msg);
   }
+  return res.json();
 }
 
 export async function createClassificationRule(payload: CreateRulePayload): Promise<{ status: string; rule_id: string; pending_count_after: number; message: string }> {
