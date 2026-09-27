@@ -1,0 +1,9 @@
+node_modules/
+.next/
+qa-shots/
+*.log
+.env*
+deploy-stage*
+*.tar.gz
+.wrangler/
+.openai/
