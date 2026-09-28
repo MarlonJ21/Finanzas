@@ -104,17 +104,16 @@ export default function LukaPage() {
   const chunks = useRef<Blob[]>([]);
   const stream = useRef<MediaStream | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const speechTranscriptRef = useRef<string>("");
-  const [transcribedPreview, setTranscribedPreview] = useState("");
+  const discardRecording = useRef(false);
 
   useEffect(() => {
     setAutoVoice(localStorage.getItem("luka-auto-voice") !== "false");
     return () => {
+      discardRecording.current = true;
       stream.current?.getTracks().forEach((track) => track.stop());
       if (timer.current) clearInterval(timer.current);
       window.speechSynthesis?.cancel();
-      try { recognitionRef.current?.stop(); } catch {}
+      if (recorder.current?.state === "recording") recorder.current.stop();
     };
   }, []);
 
@@ -132,7 +131,7 @@ export default function LukaPage() {
   async function send(text = input, fromAudio = false) {
     const message = text.trim();
     if (!message || busy) return;
-    setBusy(true); setError(""); setInput(""); setTranscribedPreview("");
+    setBusy(true); setError(""); setInput("");
     setMessages((items) => [...items, { role: "user", text: message, audio: fromAudio }]);
     try {
       const response = await fetch(`${getApiBase()}/luka/chat`, {
@@ -158,66 +157,13 @@ export default function LukaPage() {
 
   async function startRecording() {
     setError("");
-    const SpeechRecognitionClass = typeof window !== "undefined" ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
-
-    if (SpeechRecognitionClass) {
-      try {
-        const recognizer = new SpeechRecognitionClass();
-        recognizer.lang = "es-VE";
-        recognizer.continuous = true;
-        recognizer.interimResults = true;
-
-        recognizer.onstart = () => {
-          setRecording(true);
-          setSeconds(0);
-        };
-
-        recognizer.onresult = (event: any) => {
-          let full = "";
-          for (let i = 0; i < event.results.length; ++i) {
-            full += event.results[i][0].transcript;
-          }
-          if (full.trim()) {
-            speechTranscriptRef.current = full.trim();
-            setInput(full.trim());
-            setTranscribedPreview(full.trim());
-          }
-        };
-
-        recognizer.onerror = (event: any) => {
-          console.warn("SpeechRec error:", event.error);
-          if (event.error === "not-allowed" || event.error === "permission-denied") {
-            setError("Permiso de micrófono denegado. Permite el micrófono en tu navegador.");
-          } else if (event.error === "network") {
-            setError("No se pudo conectar al servicio de voz. Puedes escribir tu pregunta.");
-          }
-          stopRecording();
-        };
-
-        recognizer.onend = () => {
-          setRecording(false);
-          if (timer.current) clearInterval(timer.current);
-        };
-
-        recognizer.start();
-        recognitionRef.current = recognizer;
-        setRecording(true);
-        setSeconds(0);
-
-        timer.current = setInterval(() => setSeconds((n) => {
-          if (n >= 59) { stopRecording(); return 60; }
-          return n + 1;
-        }), 1000);
-        return;
-      } catch (err) {
-        console.warn("SpeechRecognition start failed, falling back to MediaRecorder", err);
-      }
-    }
-
-    // Fallback: MediaRecorder if SpeechRecognition is not supported
     try {
-      speechTranscriptRef.current = "";
-      setTranscribedPreview("");
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+        setError("Este navegador no permite grabar audio. Usa Chrome o Edge actualizado.");
+        return;
+      }
+      setRecorded(null);
+      discardRecording.current = false;
       const media = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.current = media;
       chunks.current = [];
@@ -226,50 +172,58 @@ export default function LukaPage() {
       recorder.current = instance;
       instance.ondataavailable = (event) => { if (event.data.size) chunks.current.push(event.data); };
       instance.onstop = () => {
-        setRecorded(new Blob(chunks.current, { type: instance.mimeType || "audio/webm" }));
+        if (!discardRecording.current) {
+          const audio = new Blob(chunks.current, { type: instance.mimeType || "audio/webm" });
+          if (audio.size) setRecorded(audio);
+          else setError("No se grabó audio. Intenta de nuevo.");
+        }
         media.getTracks().forEach((track) => track.stop());
+        stream.current = null;
       };
+      instance.onerror = () => { setError("La grabación falló. Intenta de nuevo."); stopRecording(true); };
       instance.start();
       setRecording(true);
       setSeconds(0);
-      timer.current = setInterval(() => setSeconds((n) => {
-        if (n >= 59) { stopRecording(); return 60; }
-        return n + 1;
-      }), 1000);
+      let elapsed = 0;
+      timer.current = setInterval(() => {
+        elapsed += 1;
+        setSeconds(elapsed);
+        if (elapsed >= 60) stopRecording();
+      }, 1000);
     } catch {
-      setError("No pude acceder al micrófono. Puedes escribir tu pregunta.");
+      stream.current?.getTracks().forEach((track) => track.stop());
+      stream.current = null;
+      setError("No pude acceder al micrófono. Revisa el permiso del navegador.");
     }
   }
 
-  function stopRecording() {
+  function stopRecording(discard = false) {
+    discardRecording.current = discard;
     setRecording(false);
-    if (timer.current) clearInterval(timer.current);
-    try { recognitionRef.current?.stop(); } catch {}
-    try { recorder.current?.stop(); } catch {}
+    if (timer.current) { clearInterval(timer.current); timer.current = null; }
+    if (recorder.current?.state === "recording") recorder.current.stop();
+    else stream.current?.getTracks().forEach((track) => track.stop());
+    if (discard) setRecorded(null);
   }
 
   async function sendRecording() {
-    const textToSend = speechTranscriptRef.current.trim() || input.trim();
-    if (textToSend) {
-      speechTranscriptRef.current = "";
-      setRecorded(null);
-      setTranscribedPreview("");
-      await send(textToSend, true);
+    if (!recorded || busy) return;
+    if (recorded.size > 10 * 1024 * 1024) {
+      setError("El audio supera 10 MB. Graba un mensaje más corto.");
       return;
     }
-
-    if (!recorded || busy) return;
     setBusy(true);
     setError("");
     const form = new FormData();
-    form.append("file", recorded, "voice.webm");
+    const mimeType = recorded.type.split(";")[0];
+    const extension = mimeType === "audio/mp4" ? "mp4" : mimeType === "audio/ogg" ? "ogg" : "webm";
+    form.append("file", recorded, `voice.${extension}`);
     try {
       const res = await fetch(`${getApiBase()}/luka/transcribe`, { method: "POST", body: form });
-      if (!res.ok) throw new Error("No pude procesar el audio ahora mismo. Puedes escribir tu pregunta.");
+      if (!res.ok) throw new Error("No pude transcribir el audio ahora. Intenta de nuevo.");
       const data = await res.json();
+      if (!data.text?.trim()) throw new Error("No logré entender el audio. Intenta hablar más cerca del micrófono.");
       setRecorded(null);
-      setTranscribedPreview("");
-      if (!data.text) throw new Error("No logré entender el audio. Puedes escribir tu pregunta.");
       setBusy(false);
       await send(data.text, true);
     } catch (e) {
@@ -320,14 +274,13 @@ export default function LukaPage() {
     {recording ? (
       <div className="luka-recording">
         <span className="luka-record-dot" /> Grabando {`0:${String(seconds).padStart(2, "0")}`}
-        {transcribedPreview ? <span style={{ marginLeft: 8, opacity: 0.8, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{transcribedPreview}"</span> : null}
-        <button className="secondary-button" onClick={() => { recorder.current?.stop(); setRecording(false); setRecorded(null); setTranscribedPreview(""); if (timer.current) clearInterval(timer.current); try { recognitionRef.current?.stop(); } catch {} }}>Cancelar</button>
-        <button className="primary-button" onClick={stopRecording}><Square size={15} /> Detener</button>
+        <button className="secondary-button" onClick={() => stopRecording(true)}>Cancelar</button>
+        <button className="primary-button" onClick={() => stopRecording()}><Square size={15} /> Detener</button>
       </div>
-    ) : (recorded || transcribedPreview) ? (
+    ) : recorded ? (
       <div className="luka-recording">
-        <span>Audio listo · {seconds}s{transcribedPreview ? ` ("${transcribedPreview.length > 30 ? transcribedPreview.slice(0, 30) + '...' : transcribedPreview}")` : ""}</span>
-        <button className="ghost-button" aria-label="Descartar audio" onClick={() => { setRecorded(null); setTranscribedPreview(""); }}><Trash2 size={17} /></button>
+        <span>Audio listo · {seconds}s</span>
+        <button className="ghost-button" aria-label="Descartar audio" onClick={() => setRecorded(null)}><Trash2 size={17} /></button>
         <button className="primary-button" disabled={busy} onClick={() => void sendRecording()}><Send size={15} /> Transcribir y enviar</button>
       </div>
     ) : null}

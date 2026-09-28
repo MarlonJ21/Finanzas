@@ -4,6 +4,7 @@ import uuid
 from typing import Literal
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from app.services import luka as luka_service
@@ -70,7 +71,7 @@ async def luka_transcribe(file: UploadFile = File(...)) -> dict:
     content = await file.read(10 * 1024 * 1024 + 1)
     await file.close()
     try:
-        text = luka_service.transcribe_audio(content, mime_type)
+        text = await run_in_threadpool(luka_service.transcribe_audio, content, mime_type)
     except ValueError as exc:
         raise HTTPException(status_code=415 if "TYPE" in str(exc) else 413, detail="AUDIO_INVALID") from exc
     except RuntimeError as exc:

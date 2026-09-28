@@ -12,7 +12,7 @@ The tool registry includes financial summary, budget and biweekly status, Safe t
 
 Providers are tried in `LUKA_PROVIDER_ORDER`. OpenRouter sends the configured model first and uses its server-side model fallback list; NVIDIA NIM retries its model list on timeout, network failure, 404, 429, and 5xx responses before advancing to the next provider. The OpenRouter and NVIDIA primaries retain the existing `LUKA_OPENROUTER_MODEL` and `LUKA_NVIDIA_MODEL` overrides. Optional `LUKA_OPENROUTER_MODELS` and `LUKA_NVIDIA_MODELS` values replace the respective fallback lists (comma-separated); otherwise the built-in lists are used. The actual responding model is returned to the chat UI and logs. Model lists are limited to endpoints documented as supporting tool calling.
 
-The default OpenRouter sequence is GPT-4o mini, Llama 3.3 70B, Qwen3.8 27B, Mistral Small 3.2, then OpenRouter's tool-aware free-model router. NVIDIA starts with the currently deployed Llama 3.2 11B and falls through Muse Glimmer 30B and GLM 5.3/5.3 Flash. Older NVIDIA entries that are deprecated or lack function calling are not included in the tool-call cascade.
+The default OpenRouter sequence is GPT-4o mini, Llama 3.3 70B, Qwen3.8 27B, and Mistral Small 3.2. OpenRouter accepts at most three entries in the `models` fallback array. NVIDIA starts with the currently deployed Llama 3.2 11B and falls through Muse Glimmer 30B and GLM 5.3/5.3 Flash. Older NVIDIA entries that are deprecated or lack function calling are not included in the tool-call cascade.
 
 Set these environment variables in the backend environment (Render for hosted deployment):
 
@@ -33,7 +33,7 @@ Only configured providers with a key are reported as available. No provider key 
 
 Requests have a 4,000 character limit, audio uploads have a 10 MiB limit, provider calls time out, and a turn can execute at most three tool calls. The model sees aggregate tool results, not CSV content, account numbers, or complete transaction records. Recent transaction retrieval omits descriptions and account names. Conversation state is not persisted.
 
-Audio is recorded in the browser and explicitly sent after user confirmation to `POST /api/luka/transcribe`. The backend validates MIME type and byte size and forwards the bytes to Groq transcription without trusting the filename or keeping a temporary copy. If Groq STT is unconfigured or unavailable, text chat remains usable. Speech output uses browser SpeechSynthesis with Spanish voice preference and text fallback.
+Audio is recorded with MediaRecorder in the browser, then explicitly sent after user confirmation to `POST /api/luka/transcribe`. The backend validates MIME type and byte size and sends it to OpenRouter's transcription endpoint using the existing `OPENROUTER_API_KEY`, with GPT-4o Mini Transcribe and Whisper 1 as model attempts. Groq and Gemini remain optional STT fallbacks. The audio is not saved by the backend. Browser SpeechRecognition is not used because its remote service can fail with a network error even when LUKA's backend is online. Speech output uses browser SpeechSynthesis with Spanish voice preference and text fallback.
 
 ## Testing
 

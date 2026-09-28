@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -167,6 +170,41 @@ def test_transcription_rejects_oversized_audio(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setenv("GROQ_API_KEY", "test-key")
     with pytest.raises(ValueError, match="AUDIO_INVALID_SIZE"):
         luka.transcribe_audio(b"x" * (10 * 1024 * 1024 + 1), "audio/webm")
+
+
+def test_openrouter_transcribes_recorded_webm_and_enables_voice(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.delenv("LUKA_OPENROUTER_STT_MODEL", raising=False)
+    captured: list[dict] = []
+
+    def post(url: str, **kwargs: object) -> httpx.Response:
+        assert url == "https://openrouter.ai/api/v1/audio/transcriptions"
+        captured.append(kwargs["json"])
+        return httpx.Response(200, json={"text": "¿Cuánto puedo gastar?"}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(luka.httpx, "post", post)
+    response = client.post("/api/luka/transcribe", files={"file": ("voice.webm", b"recorded-webm", "audio/webm;codecs=opus")})
+    assert response.status_code == 200
+    assert response.json()["text"] == "¿Cuánto puedo gastar?"
+    assert captured[0]["model"] == "openai/gpt-4o-mini-transcribe"
+    assert captured[0]["input_audio"] == {"data": base64.b64encode(b"recorded-webm").decode("ascii"), "format": "webm"}
+    assert client.get("/api/luka/status").json()["stt_available"] is True
+
+
+def test_openrouter_stt_retries_with_whisper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.delenv("LUKA_OPENROUTER_STT_MODEL", raising=False)
+    models: list[str] = []
+
+    def post(url: str, **kwargs: object) -> httpx.Response:
+        model = kwargs["json"]["model"]
+        models.append(model)
+        status = 503 if len(models) == 1 else 200
+        return httpx.Response(status, json={"text": "Hola Luka"}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(luka.httpx, "post", post)
+    assert luka.transcribe_audio(b"recorded-webm", "audio/webm") == "Hola Luka"
+    assert models == ["openai/gpt-4o-mini-transcribe", "openai/whisper-1"]
 
 
 def test_transcription_unavailable_keeps_text_chat_available(monkeypatch: pytest.MonkeyPatch) -> None:

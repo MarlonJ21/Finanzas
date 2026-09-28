@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import base64
 import logging
 import os
 import re
@@ -85,7 +86,7 @@ def model_cascade(name: str) -> list[str]:
 def status() -> dict[str, Any]:
     order = provider_order()
     return {"enabled": enabled(), "available_providers": order, "primary_provider": order[0] if order else None,
-            "stt_available": bool(provider_key("gemini") or provider_key("groq")), "voice_output_client_side": True}
+            "stt_available": bool(provider_key("openrouter") or provider_key("gemini") or provider_key("groq")), "voice_output_client_side": True}
 
 
 def _month(value: str | None = None) -> str:
@@ -553,30 +554,49 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
 def transcribe_audio(content: bytes, mime_type: str) -> str:
     if not content or len(content) > MAX_UPLOAD_BYTES: raise ValueError("AUDIO_INVALID_SIZE")
     if mime_type not in {"audio/webm", "audio/ogg", "audio/wav", "audio/mp4", "audio/mpeg", "audio/x-m4a"}: raise ValueError("AUDIO_INVALID_TYPE")
-    if provider_key("gemini"):
-        import base64
-        key = provider_key("gemini")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
-        data = {
-            "contents": [{
-                "parts": [
-                    {"text": "Transcribe exactamente lo que se dice en este audio en español. Devuelve únicamente el texto transcrito, sin comillas ni explicaciones adicionales."},
-                    {"inline_data": {"mime_type": mime_type, "data": base64.b64encode(content).decode("ascii")}}
-                ]
-            }],
-            "generationConfig": {"temperature": 0.0}
-        }
-        res = httpx.post(url, json=data, timeout=30)
-        res.raise_for_status()
-        candidates = res.json().get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                return str(parts[0].get("text", "")).strip()
-        return ""
-    if provider_key("groq"):
-        files = {"file": ("voice." + {"audio/webm":"webm", "audio/ogg":"ogg", "audio/wav":"wav", "audio/mp4":"mp4", "audio/mpeg":"mp3", "audio/x-m4a":"m4a"}[mime_type], content, mime_type)}
-        response = httpx.post("https://api.groq.com/openai/v1/audio/transcriptions", headers={"Authorization": f"Bearer {provider_key('groq')}"}, data={"model": os.getenv("LUKA_STT_MODEL", "whisper-large-v3-turbo"), "language": "es"}, files=files, timeout=45)
-        response.raise_for_status()
-        return str(response.json().get("text", "")).strip()
-    raise RuntimeError("STT_NOT_CONFIGURED")
+    audio_format = {"audio/webm":"webm", "audio/ogg":"ogg", "audio/wav":"wav", "audio/mp4":"mp4", "audio/mpeg":"mp3", "audio/x-m4a":"m4a"}[mime_type]
+    if key := provider_key("openrouter"):
+        encoded = base64.b64encode(content).decode("ascii")
+        models = [os.getenv("LUKA_OPENROUTER_STT_MODEL", "openai/gpt-4o-mini-transcribe"), "openai/whisper-1"]
+        for model in dict.fromkeys(models):
+            try:
+                response = httpx.post(
+                    "https://openrouter.ai/api/v1/audio/transcriptions",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={"model": model, "input_audio": {"data": encoded, "format": audio_format}, "language": "es"},
+                    timeout=45,
+                )
+                response.raise_for_status()
+                transcript = str(response.json().get("text") or "").strip()
+                if transcript:
+                    return transcript
+            except (httpx.HTTPError, ValueError) as exc:
+                status_code = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else None
+                log.warning("luka stt provider=openrouter model=%s status=%s error=%s", model, status_code, type(exc).__name__)
+    if key := provider_key("groq"):
+        try:
+            files = {"file": ("voice." + audio_format, content, mime_type)}
+            response = httpx.post("https://api.groq.com/openai/v1/audio/transcriptions", headers={"Authorization": f"Bearer {key}"}, data={"model": os.getenv("LUKA_STT_MODEL", "whisper-large-v3-turbo"), "language": "es"}, files=files, timeout=45)
+            response.raise_for_status()
+            transcript = str(response.json().get("text") or "").strip()
+            if transcript:
+                return transcript
+        except (httpx.HTTPError, ValueError) as exc:
+            log.warning("luka stt provider=groq error=%s", type(exc).__name__)
+    if key := provider_key("gemini"):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            data = {"contents": [{"parts": [
+                {"text": "Transcribe exactamente lo que se dice en este audio en español. Devuelve únicamente el texto transcrito, sin comillas ni explicaciones adicionales."},
+                {"inline_data": {"mime_type": mime_type, "data": base64.b64encode(content).decode("ascii")}},
+            ]}], "generationConfig": {"temperature": 0.0}}
+            response = httpx.post(url, json=data, timeout=45)
+            response.raise_for_status()
+            candidates = response.json().get("candidates", [])
+            parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+            transcript = str(parts[0].get("text") or "").strip() if parts else ""
+            if transcript:
+                return transcript
+        except (httpx.HTTPError, ValueError) as exc:
+            log.warning("luka stt provider=gemini error=%s", type(exc).__name__)
+    raise RuntimeError("STT_NOT_AVAILABLE")
