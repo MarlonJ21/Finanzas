@@ -295,3 +295,21 @@ def test_get_daily_spending() -> None:
     assert gemini_item["category"] == "Suscripciones / Herramientas"
     assert gemini_item["subcategory"] == "Gemini"
 
+
+def test_premiadosve_spending(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("DEEPSEEK_API_KEY", "KIMI_API_KEY", "MOONSHOT_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "NVIDIA_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+    ans = luka.answer("cuánto he gastado en total de premiados VE")
+    assert ans["provider"] == "deterministic"
+    assert "get_spending_by_category" in ans["tool_calls"]
+    assert "$199.87" in ans["message"]
+    assert "$53.73" in ans["message"]
+
+    cat_data = luka.get_spending_by_category("PremiadosVE")
+    assert cat_data["domain"] == "NEGOCIO"
+    assert cat_data["all_time_spent_usd"] == 199.87
+    assert cat_data["amount_usd"] == 53.73
+    assert cat_data["all_time_income_usd"] == 570.48
+
+

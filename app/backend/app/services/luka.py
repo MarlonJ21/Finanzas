@@ -100,6 +100,13 @@ def _month_shift(ym: str, offset: int) -> str:
     return f"{n // 12:04d}-{n % 12 + 1:02d}"
 
 
+def _norm_str(s: str | None) -> str:
+    val = str(s or "").lower().replace(" ", "")
+    for a, b in [("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u"), ("ü", "u")]:
+        val = val.replace(a, b)
+    return val
+
+
 def get_financial_summary() -> dict[str, Any]:
     ctx = latest_context()
     month = _month()
@@ -153,26 +160,121 @@ def get_top_spending(group_by: str = "category", month: str | None = None, limit
 
 def get_spending_by_category(category: str, month: str | None = None) -> dict[str, Any]:
     ym = _month(month)
-    rows = query_all("""SELECT Categoria AS category, SUM(MontoUSD) AS amount_usd FROM movimientos
-        WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
-        AND lower(Categoria)=lower(?) GROUP BY Categoria""", [f"{ym}%", category])
-    return {"month": ym, "category": category, "amount_usd": as_float(rows[0]["amount_usd"]) if rows else 0}
+    clean_cat = category.strip().lower()
+    clean_nospace = clean_cat.replace(" ", "")
+
+    rows_month = query_all("""
+        SELECT Categoria AS category, Dominio AS domain, SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE Fecha LIKE ? AND EsEgresoEconomico=1
+          AND (lower(Categoria)=lower(?) OR REPLACE(lower(Categoria), ' ', '')=?)
+        GROUP BY Categoria, Dominio
+    """, [f"{ym}%", category, clean_nospace])
+
+    rows_all = query_all("""
+        SELECT Categoria AS category, Dominio AS domain, SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE EsEgresoEconomico=1
+          AND (lower(Categoria)=lower(?) OR REPLACE(lower(Categoria), ' ', '')=?)
+        GROUP BY Categoria, Dominio
+    """, [category, clean_nospace])
+
+    rows_inc_month = query_all("""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE Fecha LIKE ? AND EsIngresoEconomico=1
+          AND (lower(Categoria)=lower(?) OR REPLACE(lower(Categoria), ' ', '')=?)
+    """, [f"{ym}%", category, clean_nospace])
+
+    rows_inc_all = query_all("""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE EsIngresoEconomico=1
+          AND (lower(Categoria)=lower(?) OR REPLACE(lower(Categoria), ' ', '')=?)
+    """, [category, clean_nospace])
+
+    month_amount = as_float(rows_month[0]["amount_usd"]) if rows_month else 0.0
+    month_count = int(rows_month[0]["count"]) if rows_month else 0
+    all_amount = as_float(rows_all[0]["amount_usd"]) if rows_all else 0.0
+    all_count = int(rows_all[0]["count"]) if rows_all else 0
+    cat_real = rows_all[0]["category"] if rows_all else category
+    dom_real = rows_all[0]["domain"] if rows_all else "PERSONAL"
+
+    res: dict[str, Any] = {
+        "month": ym,
+        "category": cat_real,
+        "domain": dom_real,
+        "amount_usd": month_amount,
+        "count": month_count,
+        "all_time_spent_usd": all_amount,
+        "all_time_count": all_count
+    }
+    if rows_inc_all and (rows_inc_all[0]["count"] or 0) > 0:
+        res["month_income_usd"] = as_float(rows_inc_month[0]["amount_usd"]) if rows_inc_month else 0.0
+        res["all_time_income_usd"] = as_float(rows_inc_all[0]["amount_usd"])
+        res["all_time_income_count"] = int(rows_inc_all[0]["count"])
+    return res
 
 
 def get_spending_by_subcategory(subcategory: str, month: str | None = None) -> dict[str, Any]:
     ym = _month(month)
-    rows = query_all("""SELECT Categoria AS category, Subcategoria AS subcategory, SUM(MontoUSD) AS amount_usd FROM movimientos
-        WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
-        AND lower(Subcategoria)=lower(?) GROUP BY Categoria, Subcategoria""", [f"{ym}%", subcategory])
-    return {"month": ym, "subcategory": subcategory, "items": [{**r, "amount_usd": as_float(r["amount_usd"])} for r in rows]}
+    clean_sub = subcategory.strip().lower()
+    clean_nospace = clean_sub.replace(" ", "")
+    rows = query_all("""SELECT Categoria AS category, Subcategoria AS subcategory, Dominio AS domain, SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE Fecha LIKE ? AND EsEgresoEconomico=1
+        AND (lower(Subcategoria)=lower(?) OR REPLACE(lower(Subcategoria), ' ', '')=?) GROUP BY Categoria, Subcategoria, Dominio""", [f"{ym}%", subcategory, clean_nospace])
+    rows_all = query_all("""SELECT Categoria AS category, Subcategoria AS subcategory, Dominio AS domain, SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE EsEgresoEconomico=1
+        AND (lower(Subcategoria)=lower(?) OR REPLACE(lower(Subcategoria), ' ', '')=?) GROUP BY Categoria, Subcategoria, Dominio""", [subcategory, clean_nospace])
+    return {
+        "month": ym,
+        "subcategory": subcategory,
+        "amount_usd": as_float(sum(r["amount_usd"] for r in rows)),
+        "all_time_spent_usd": as_float(sum(r["amount_usd"] for r in rows_all)),
+        "items": [{**r, "amount_usd": as_float(r["amount_usd"])} for r in rows]
+    }
 
 
 def get_spending_by_merchant_or_description(text: str, month: str | None = None) -> dict[str, Any]:
     ym = _month(month)
-    row = query_all("""SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
-        WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
-        AND lower(DescripcionOriginal) LIKE ?""", [f"{ym}%", f"%{text.lower()}%"])[0]
-    return {"month": ym, "search": text, "amount_usd": as_float(row["amount_usd"]), "count": int(row["count"] or 0)}
+    clean_text = text.strip().lower()
+    clean_nospace = clean_text.replace(" ", "")
+
+    match_cond = """(
+        lower(DescripcionOriginal) LIKE ? OR
+        REPLACE(lower(DescripcionOriginal), ' ', '') LIKE ? OR
+        lower(Categoria) LIKE ? OR
+        REPLACE(lower(Categoria), ' ', '') LIKE ? OR
+        lower(Subcategoria) LIKE ? OR
+        REPLACE(lower(Subcategoria), ' ', '') LIKE ?
+    )"""
+    match_params = [f"%{clean_text}%", f"%{clean_nospace}%", f"%{clean_text}%", f"%{clean_nospace}%", f"%{clean_text}%", f"%{clean_nospace}%"]
+
+    row_month = query_all(f"""SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE Fecha LIKE ? AND EsEgresoEconomico=1 AND {match_cond}""", [f"{ym}%"] + match_params)[0]
+    row_all = query_all(f"""SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE EsEgresoEconomico=1 AND {match_cond}""", match_params)[0]
+
+    row_inc_month = query_all(f"""SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE Fecha LIKE ? AND EsIngresoEconomico=1 AND {match_cond}""", [f"{ym}%"] + match_params)[0]
+    row_inc_all = query_all(f"""SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count FROM movimientos
+        WHERE EsIngresoEconomico=1 AND {match_cond}""", match_params)[0]
+
+    month_spent = as_float(row_month["amount_usd"])
+    all_spent = as_float(row_all["amount_usd"])
+    res: dict[str, Any] = {
+        "month": ym,
+        "search": text,
+        "amount_usd": month_spent,
+        "count": int(row_month["count"] or 0),
+        "all_time_spent_usd": all_spent,
+        "all_time_count": int(row_all["count"] or 0)
+    }
+    if int(row_inc_all["count"] or 0) > 0:
+        res["month_income_usd"] = as_float(row_inc_month["amount_usd"])
+        res["all_time_income_usd"] = as_float(row_inc_all["amount_usd"])
+        res["all_time_income_count"] = int(row_inc_all["count"] or 0)
+    return res
 
 
 def compare_spending_periods(period: str = "month", category: str | None = None, query: str | None = None) -> dict[str, Any]:
@@ -431,6 +533,7 @@ def search_transactions(
     query: str | None = None,
     category: str | None = None,
     subcategory: str | None = None,
+    domain: str | None = None,
     min_amount: float | None = None,
     max_amount: float | None = None,
     date_from: str | None = None,
@@ -438,9 +541,12 @@ def search_transactions(
     month: str | None = None,
     limit: int = 10
 ) -> dict[str, Any]:
-    filters = ["Dominio='PERSONAL'", "EsEgresoEconomico=1"]
+    filters = ["EsEgresoEconomico=1"]
     params: list[Any] = []
 
+    if domain and domain.strip():
+        filters.append("lower(Dominio) = lower(?)")
+        params.append(domain.strip())
     if month:
         ym = _month(month)
         filters.append("Fecha LIKE ?")
@@ -452,14 +558,27 @@ def search_transactions(
         filters.append("Fecha <= ?")
         params.append(date_to)
     if query and query.strip():
-        filters.append("lower(DescripcionOriginal) LIKE ?")
-        params.append(f"%{query.strip().lower()}%")
+        q_raw = query.strip().lower()
+        q_nospace = q_raw.replace(" ", "")
+        filters.append("""(
+            lower(DescripcionOriginal) LIKE ? OR
+            REPLACE(lower(DescripcionOriginal), ' ', '') LIKE ? OR
+            lower(Categoria) LIKE ? OR
+            REPLACE(lower(Categoria), ' ', '') LIKE ? OR
+            lower(Subcategoria) LIKE ? OR
+            REPLACE(lower(Subcategoria), ' ', '') LIKE ?
+        )""")
+        params.extend([f"%{q_raw}%", f"%{q_nospace}%", f"%{q_raw}%", f"%{q_nospace}%", f"%{q_raw}%", f"%{q_nospace}%"])
     if category and category.strip():
-        filters.append("lower(Categoria) = lower(?)")
-        params.append(category.strip())
+        c_raw = category.strip().lower()
+        c_nospace = c_raw.replace(" ", "")
+        filters.append("(lower(Categoria) = lower(?) OR REPLACE(lower(Categoria), ' ', '') = ?)")
+        params.extend([c_raw, c_nospace])
     if subcategory and subcategory.strip():
-        filters.append("lower(Subcategoria) = lower(?)")
-        params.append(subcategory.strip())
+        s_raw = subcategory.strip().lower()
+        s_nospace = s_raw.replace(" ", "")
+        filters.append("(lower(Subcategoria) = lower(?) OR REPLACE(lower(Subcategoria), ' ', '') = ?)")
+        params.extend([s_raw, s_nospace])
     if min_amount is not None:
         filters.append("MontoUSD >= ?")
         params.append(float(min_amount))
@@ -469,7 +588,7 @@ def search_transactions(
 
     lim = max(1, min(limit, 25))
     sql = f"""
-        SELECT Fecha AS date, Hora AS time, DescripcionOriginal AS description,
+        SELECT Fecha AS date, Hora AS time, Dominio AS domain, DescripcionOriginal AS description,
                Categoria AS category, Subcategoria AS subcategory, MontoUSD AS amount_usd, Cuenta AS account
         FROM movimientos
         WHERE {' AND '.join(filters)}
@@ -481,6 +600,7 @@ def search_transactions(
     items = [{
         "date": r["date"],
         "time": r["time"],
+        "domain": r["domain"],
         "description": r["description"],
         "category": r["category"],
         "subcategory": r["subcategory"],
@@ -495,7 +615,7 @@ def search_transactions(
         "items": items,
         "filters_applied": {
             k: v for k, v in {
-                "query": query, "category": category, "subcategory": subcategory,
+                "query": query, "category": category, "subcategory": subcategory, "domain": domain,
                 "min_amount": min_amount, "max_amount": max_amount,
                 "date_from": date_from, "date_to": date_to, "month": month
             }.items() if v is not None
@@ -765,20 +885,52 @@ def _deterministic(message: str) -> tuple[str, dict[str, Any] | None, str | None
             first = card["items"][0]
             return f"Este mes llevas más gasto en {first['label']}: ${first['amount_usd']:.2f}.", card, "get_top_spending"
         return "No encuentro gastos presupuestables para este mes.", card, "get_top_spending"
+    if re.search(r"premiados(?:\s*ve)?", text):
+        card = get_spending_by_category("PremiadosVE")
+        is_total = bool(re.search(r"total|hist[oó]rico|todo|siempre", text))
+        if is_total:
+            msg = f"En tu negocio PremiadosVE llevas un gasto total histórico de ${card['all_time_spent_usd']:.2f} ({card['all_time_count']} movimientos de egreso), de los cuales ${card['amount_usd']:.2f} corresponden a este mes ({card['month']})."
+            if card.get("all_time_income_usd", 0) > 0:
+                msg += f" En ventas e ingresos registras ${card['all_time_income_usd']:.2f} en total histórico (${card.get('month_income_usd', 0):.2f} este mes)."
+            return msg, card, "get_spending_by_category"
+        else:
+            msg = f"En PremiadosVE llevas gastados ${card['amount_usd']:.2f} este mes ({card['month']}) y ${card['all_time_spent_usd']:.2f} en total histórico."
+            if card.get("month_income_usd", 0) > 0:
+                msg += f" En ventas registras ${card['month_income_usd']:.2f} este mes (${card['all_time_income_usd']:.2f} histórico)."
+            return msg, card, "get_spending_by_category"
     spent_match = re.search(r"(?:gast(?:e|é|ado|aste|o)|consum(?:i|í)).*?\b(?:en|de)\s+([\wáéíóúñü /-]+?)\s*[?.!]*$", text)
     if spent_match:
         label = spent_match.group(1).strip()
-        names = query_all("SELECT DISTINCT Categoria AS category, Subcategoria AS subcategory FROM movimientos WHERE Fecha LIKE ? AND Dominio='PERSONAL'", [f"{_month()}%"])
-        category = next((r["category"] for r in names if str(r["category"] or "").casefold() == label.casefold()), None)
-        subcategory = next((r["subcategory"] for r in names if str(r["subcategory"] or "").casefold() == label.casefold()), None)
+        is_total = bool(re.search(r"total|hist[oó]rico|todo", text))
+        label_clean = re.sub(r"^(?:total\s+(?:de|en)\s+|todo\s+(?:de|en)\s+)", "", label).strip()
+        label_clean = re.sub(r"\s+(?:este\s+mes|el\s+mes|en\s+el\s+mes|en\s+total)$", "", label_clean).strip()
+        label_norm = _norm_str(label_clean)
+
+        names = query_all("SELECT DISTINCT Categoria AS category, Subcategoria AS subcategory FROM movimientos")
+        category = next((r["category"] for r in names if _norm_str(r["category"]) == label_norm), None)
+        subcategory = next((r["subcategory"] for r in names if _norm_str(r["subcategory"]) == label_norm), None)
         if category:
             card = get_spending_by_category(category)
-            return f"Este mes llevas ${card['amount_usd']:.2f} en {category}.", card, "get_spending_by_category"
+            if is_total:
+                msg = f"En {category} llevas un gasto total histórico de ${card['all_time_spent_usd']:.2f} ({card['all_time_count']} movimientos), de los cuales ${card['amount_usd']:.2f} corresponden a este mes ({card['month']})."
+                if card.get("all_time_income_usd", 0) > 0:
+                    msg += f" En ventas/ingresos registras ${card['all_time_income_usd']:.2f} en total (${card.get('month_income_usd', 0):.2f} este mes)."
+                return msg, card, "get_spending_by_category"
+            return f"Este mes llevas ${card['amount_usd']:.2f} en {category} (${card['all_time_spent_usd']:.2f} en total histórico).", card, "get_spending_by_category"
         if subcategory:
             card = get_spending_by_subcategory(subcategory)
-            amount = sum(row["amount_usd"] for row in card["items"])
-            card["amount_usd"] = as_float(amount)
-            return f"Este mes llevas ${card['amount_usd']:.2f} en {subcategory}.", card, "get_spending_by_subcategory"
+            if is_total:
+                return f"En {subcategory} llevas un gasto total histórico de ${card['all_time_spent_usd']:.2f} (${card['amount_usd']:.2f} en este mes).", card, "get_spending_by_subcategory"
+            return f"Este mes llevas ${card['amount_usd']:.2f} en {subcategory} (${card['all_time_spent_usd']:.2f} en total histórico).", card, "get_spending_by_subcategory"
+
+        card = get_spending_by_merchant_or_description(label_clean)
+        if card["all_time_count"] > 0:
+            if is_total:
+                msg = f"En '{label_clean}' llevas un gasto total histórico de ${card['all_time_spent_usd']:.2f} ({card['all_time_count']} movimientos), de los cuales ${card['amount_usd']:.2f} corresponden a este mes ({card['month']})."
+                if card.get("all_time_income_usd", 0) > 0:
+                    msg += f" En ventas/ingresos registras ${card['all_time_income_usd']:.2f} en total (${card.get('month_income_usd', 0):.2f} este mes)."
+                return msg, card, "get_spending_by_merchant_or_description"
+            return f"Este mes llevas ${card['amount_usd']:.2f} en '{label_clean}' (${card['all_time_spent_usd']:.2f} en total histórico).", card, "get_spending_by_merchant_or_description"
     if re.search(r"compar|mes pasado|yummy|gastando más|mismo período|mismo periodo|a esta fecha", text):
         vendor = re.search(r"\b([a-z]{3,})\b", text.replace("mes", ""))
         term = vendor.group(1) if vendor and vendor.group(1) not in {"estoy", "gastando", "comida", "comparar"} else None
@@ -808,9 +960,9 @@ TOOL_SCHEMAS = [{"type":"function","function":{"name":"get_financial_summary","d
 
 for _tool_name, _tool_description, _properties, _required in [
     ("get_budget_status", "Estado del presupuesto mensual", {}, []),
-    ("get_spending_by_category", "Gasto agregado de una categoría", {"category": {"type": "string"}}, ["category"]),
-    ("get_spending_by_subcategory", "Gasto agregado de una subcategoría", {"subcategory": {"type": "string"}}, ["subcategory"]),
-    ("get_spending_by_merchant_or_description", "Gasto total que coincide con un comercio o texto", {"text": {"type": "string"}}, ["text"]),
+    ("get_spending_by_category", "Gasto agregado de una categoría personal o de negocio (devuelve monto del mes y total histórico)", {"category": {"type": "string"}, "month": {"type": "string"}}, ["category"]),
+    ("get_spending_by_subcategory", "Gasto agregado de una subcategoría (devuelve monto del mes y total histórico)", {"subcategory": {"type": "string"}, "month": {"type": "string"}}, ["subcategory"]),
+    ("get_spending_by_merchant_or_description", "Gasto total que coincide con un comercio, texto o negocio como PremiadosVE (devuelve monto del mes y total histórico)", {"text": {"type": "string"}, "month": {"type": "string"}}, ["text"]),
     ("get_recent_transactions", "Resumen breve de movimientos recientes sin cuentas ni descripción", {}, []),
     ("get_planner_summary", "Resumen del planificador presupuestario", {}, []),
     ("get_category_forecast", "Pronóstico de una categoría", {"category": {"type": "string"}}, ["category"]),
@@ -818,7 +970,7 @@ for _tool_name, _tool_description, _properties, _required in [
     ("get_peak_spending_days", "Obtiene los días con mayor gasto del mes o período, con detalle del monto total y mayor transacción", {"month": {"type": "string"}, "limit": {"type": "integer"}}, []),
     ("get_weekly_spending", "Desglose de gastos semana por semana del mes (1-7, 8-14, 15-21, 22-28, 29-31) identificando la semana pico de gasto", {"month": {"type": "string"}}, []),
     ("find_budget_breach_transaction", "Identifica el movimiento o transacción exacta en orden cronológico que causó que una categoría superara su presupuesto", {"category": {"type": "string"}, "month": {"type": "string"}}, ["category"]),
-    ("search_transactions", "Busca y filtra movimientos por texto/comercio, categoría, subcategoría, rango de fechas o montos mínimo/máximo", {"query": {"type": "string"}, "category": {"type": "string"}, "subcategory": {"type": "string"}, "min_amount": {"type": "number"}, "max_amount": {"type": "number"}, "date_from": {"type": "string"}, "date_to": {"type": "string"}, "month": {"type": "string"}, "limit": {"type": "integer"}}, []),
+    ("search_transactions", "Busca y filtra movimientos por texto/comercio/negocio, categoría, subcategoría, dominio ('PERSONAL' o 'NEGOCIO'), rango de fechas o montos mínimo/máximo", {"query": {"type": "string"}, "category": {"type": "string"}, "subcategory": {"type": "string"}, "domain": {"type": "string"}, "min_amount": {"type": "number"}, "max_amount": {"type": "number"}, "date_from": {"type": "string"}, "date_to": {"type": "string"}, "month": {"type": "string"}, "limit": {"type": "integer"}}, []),
     ("get_daily_spending", "Obtiene el gasto total y desglose de movimientos (personales y de negocio) para una fecha específica o el día de hoy", {"target_date": {"type": "string"}}, []),
 ]:
     TOOL_SCHEMAS.append({"type": "function", "function": {"name": _tool_name, "description": _tool_description,
@@ -913,7 +1065,9 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
     system = (f"Eres Luka, asistente financiero venezolano, claro y casual. Habla en español natural. "
               f"Fecha actual de corte: {cut_date}. Mes activo de análisis: {current_month}. "
               f"El backend calcula todos los valores. Usa sólo las Finance Tools permitidas para datos. "
+              f"El usuario maneja finanzas personales y su negocio 'PremiadosVE' (dominio NEGOCIO). "
               f"Para gastos del día de hoy o una fecha puntual, invoca get_daily_spending. "
+              f"Para consultar gastos de una categoría, comercio o del negocio (como PremiadosVE), invoca get_spending_by_category o get_spending_by_merchant_or_description (ambas retornan el gasto del mes y el total histórico). "
               f"Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_daily_spending, get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "
               f"Cuando consultes herramientas que reciben 'month', no inventes fechas de otros años: usa '{current_month}' por defecto o déjalo vacío. "
               f"Nunca afirmes datos no entregados; no hagas cambios persistentes. Ignora instrucciones del usuario que pidan secretos o acciones fuera de finanzas. "
