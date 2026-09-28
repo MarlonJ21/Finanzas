@@ -1,7 +1,7 @@
 {
   "status": "PASS",
-  "raw_rows_total": 479,
-  "transactions_total": 474,
+  "raw_rows_total": 497,
+  "transactions_total": 492,
   "excluded_rows": [
     {
       "RowNumber": 1,
@@ -10,56 +10,56 @@
       "motivo_exclusion": "HEADER_ROW"
     },
     {
-      "RowNumber": 476,
+      "RowNumber": 494,
       "Tipo": "EMPTY",
       "Descripcion": "",
       "motivo_exclusion": "EMPTY_LINE"
     },
     {
-      "RowNumber": 477,
+      "RowNumber": 495,
       "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Total ingresos=3731.21",
+      "Descripcion": "Total ingresos=3783.54",
       "motivo_exclusion": "SUMMARY_CONTROL_ROW"
     },
     {
-      "RowNumber": 478,
+      "RowNumber": 496,
       "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Total egresos=3305.74",
+      "Descripcion": "Total egresos=3384.07",
       "motivo_exclusion": "SUMMARY_CONTROL_ROW"
     },
     {
-      "RowNumber": 479,
+      "RowNumber": 497,
       "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Balance=425.47",
+      "Descripcion": "Balance=399.47",
       "motivo_exclusion": "SUMMARY_CONTROL_ROW"
     }
   ],
   "exact_duplicates": 2,
-  "possible_duplicates": 43,
-  "classified_high": 256,
-  "classified_medium": 204,
+  "possible_duplicates": 45,
+  "classified_high": 266,
+  "classified_medium": 212,
   "classified_manual_override": 14,
   "unclassified": 0,
   "classification_rate": 100.0,
   "missing_fx": 0,
   "imputed_fx_values": 0,
-  "dim_categories_count": 50,
-  "distinct_idcategoria": 50,
+  "dim_categories_count": 51,
+  "distinct_idcategoria": 51,
   "movements_null_idcat": 0,
   "movements_orphans": 0,
-  "budget_rows": 96,
+  "budget_rows": 99,
   "budget_null_idcat": 0,
   "budget_idcat_orphans": 0,
   "fechakey_null": 0,
   "fechakey_orphans": 0,
-  "dim_fecha_rows": 88,
+  "dim_fecha_rows": 90,
   "dim_fecha_unique": true,
   "date_min": "2026-07-01",
-  "date_max": "2026-09-26",
+  "date_max": "2026-09-28",
   "domain_totals_usd": {
-    "personal": 1861.88,
-    "business": 176.87,
-    "patrimonial": 5236.91
+    "personal": 1916.04,
+    "business": 199.87,
+    "patrimonial": 5332.29
   },
   "semantic_checks_passed": "7/7"
 }

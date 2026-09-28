@@ -503,6 +503,93 @@ def search_transactions(
     }
 
 
+def get_daily_spending(target_date: str | None = None) -> dict[str, Any]:
+    ctx = latest_context()
+    if not target_date or not target_date.strip():
+        target_date = str(ctx.get("cut_date") or date.today().isoformat())
+    target_date = target_date.strip()
+
+    rows = query_all("""
+        SELECT Fecha AS date, Hora AS time, Dominio AS domain, Categoria AS category,
+               Subcategoria AS subcategory, DescripcionOriginal AS description, MontoUSD AS amount_usd,
+               EsEgresoEconomico AS is_expense, EsIngresoEconomico AS is_income, EsNegocio AS is_business,
+               Cuenta AS account
+        FROM movimientos
+        WHERE Fecha = ?
+        ORDER BY Hora ASC, MovimientoId ASC
+    """, [target_date])
+
+    if not rows and target_date != ctx.get("cut_date") and ctx.get("cut_date"):
+        fallback_date = str(ctx.get("cut_date"))
+        fallback_rows = query_all("""
+            SELECT Fecha AS date, Hora AS time, Dominio AS domain, Categoria AS category,
+                   Subcategoria AS subcategory, DescripcionOriginal AS description, MontoUSD AS amount_usd,
+                   EsEgresoEconomico AS is_expense, EsIngresoEconomico AS is_income, EsNegocio AS is_business,
+                   Cuenta AS account
+            FROM movimientos
+            WHERE Fecha = ?
+            ORDER BY Hora ASC, MovimientoId ASC
+        """, [fallback_date])
+        if fallback_rows:
+            target_date = fallback_date
+            rows = fallback_rows
+
+    expenses = []
+    incomes = []
+    personal_spent = 0.0
+    business_spent = 0.0
+    patrimonial_spent = 0.0
+    total_spent = 0.0
+    total_income = 0.0
+
+    for r in rows:
+        amt = as_float(r["amount_usd"])
+        item = {
+            "date": r["date"],
+            "time": r["time"],
+            "domain": r["domain"],
+            "category": r["category"],
+            "subcategory": r["subcategory"],
+            "description": r["description"],
+            "amount_usd": amt,
+            "account": r["account"],
+            "is_expense": bool(r["is_expense"]),
+            "is_income": bool(r["is_income"]),
+            "is_business": bool(r["is_business"]),
+        }
+        if r["is_expense"] == 1:
+            total_spent = as_float(total_spent + amt)
+            expenses.append(item)
+            if r["domain"] == "PERSONAL":
+                personal_spent = as_float(personal_spent + amt)
+            elif r["domain"] == "NEGOCIO" or r["is_business"] == 1:
+                business_spent = as_float(business_spent + amt)
+            elif r["domain"] == "PATRIMONIAL":
+                patrimonial_spent = as_float(patrimonial_spent + amt)
+        else:
+            incomes.append(item)
+            total_income = as_float(total_income + amt)
+
+    return {
+        "date": target_date,
+        "total_spent_usd": total_spent,
+        "personal_spent_usd": personal_spent,
+        "business_spent_usd": business_spent,
+        "patrimonial_spent_usd": patrimonial_spent,
+        "total_income_usd": total_income,
+        "expense_count": len(expenses),
+        "income_count": len(incomes),
+        "total_transactions": len(rows),
+        "expenses": expenses,
+        "incomes": incomes,
+        "items": [{
+            "label": f"{e['description']} ({e['category']})",
+            "amount_usd": e["amount_usd"],
+            "domain": e["domain"]
+        } for e in expenses]
+    }
+
+
 def get_planner_summary() -> dict[str, Any]:
     return planner_summary(scenario="REALISTIC")
 
@@ -584,7 +671,8 @@ TOOLS: dict[str, Any] = {"get_financial_summary": get_financial_summary, "get_bu
     "get_category_forecast": get_category_forecast, "simulate_cash_purchase": simulate_cash_purchase,
     "simulate_cashea_purchase": simulate_cashea_purchase, "simulate_budget_change": simulate_budget_change,
     "get_peak_spending_days": get_peak_spending_days, "get_weekly_spending": get_weekly_spending,
-    "find_budget_breach_transaction": find_budget_breach_transaction, "search_transactions": search_transactions}
+    "find_budget_breach_transaction": find_budget_breach_transaction, "search_transactions": search_transactions,
+    "get_daily_spending": get_daily_spending}
 
 
 def _deterministic(message: str) -> tuple[str, dict[str, Any] | None, str | None]:
@@ -604,6 +692,42 @@ def _deterministic(message: str) -> tuple[str, dict[str, Any] | None, str | None
             price = float(nums[0].replace(",", "."))
             card = simulate_cash_purchase(price)
             return f"Con tus números actuales, una compra de ${price:.2f} dejaría ${card['monthly_available_after']:.2f} disponibles este mes y ${card['biweekly_available_after']:.2f} en la quincena.", card, "simulate_cash_purchase"
+    if re.search(r"(?:cu[aá]nto\s+(?:(?:he\s+|hab[ií]a\s+)?gast(?:[eé]|ado)|se\s+gast[oó])\s+hoy|qu[eé]\s+gast(?:[eé]|ado)\s+hoy|gastos?\s+(?:de\s+)?hoy|gasto\s+de\s+hoy)", text):
+        card = get_daily_spending()
+        d_str = card["date"]
+        tot = card["total_spent_usd"]
+        pers = card["personal_spent_usd"]
+        biz = card["business_spent_usd"]
+
+        if tot == 0 and card["total_income_usd"] == 0:
+            return f"Para hoy ({d_str}) no tienes ningún movimiento registrado en RIAL.", card, "get_daily_spending"
+
+        lines = []
+        if tot > 0:
+            hdr = f"Hoy ({d_str}) has gastado un total de ${tot:.2f}"
+            breakdown = []
+            if pers > 0:
+                breakdown.append(f"${pers:.2f} en gastos personales")
+            if biz > 0:
+                breakdown.append(f"${biz:.2f} en negocio")
+            if card["patrimonial_spent_usd"] > 0:
+                breakdown.append(f"${card['patrimonial_spent_usd']:.2f} patrimonial")
+            if breakdown:
+                hdr += f" ({', '.join(breakdown)})."
+            else:
+                hdr += "."
+            lines.append(hdr)
+
+            exp_strs = [f"• {e['description']}: ${e['amount_usd']:.2f} ({e['category']} · {e['subcategory']})" for e in card["expenses"]]
+            lines.append("Detalle de egresos:\n" + "\n".join(exp_strs))
+        else:
+            lines.append(f"Hoy ({d_str}) no registras egresos económicos.")
+
+        if card["total_income_usd"] > 0:
+            inc_strs = [f"• {i['description']}: ${i['amount_usd']:.2f} ({i['category']})" for i in card["incomes"]]
+            lines.append(f"Entradas registradas (${card['total_income_usd']:.2f}):\n" + "\n".join(inc_strs))
+
+        return "\n\n".join(lines), card, "get_daily_spending"
     if re.search(r"(?:d[ií]a\s+(?:que\s+)?m[aá]s\s+gast|en\s+qu[eé]\s+d[ií]a\s+gast|d[ií]a\s+(?:de\s+)?mayor\s+gasto|qu[eé]\s+d[ií]a\s+gast[eé]\s+m[aá]s)", text):
         card = get_peak_spending_days()
         if card["peak_day"]:
@@ -695,6 +819,7 @@ for _tool_name, _tool_description, _properties, _required in [
     ("get_weekly_spending", "Desglose de gastos semana por semana del mes (1-7, 8-14, 15-21, 22-28, 29-31) identificando la semana pico de gasto", {"month": {"type": "string"}}, []),
     ("find_budget_breach_transaction", "Identifica el movimiento o transacción exacta en orden cronológico que causó que una categoría superara su presupuesto", {"category": {"type": "string"}, "month": {"type": "string"}}, ["category"]),
     ("search_transactions", "Busca y filtra movimientos por texto/comercio, categoría, subcategoría, rango de fechas o montos mínimo/máximo", {"query": {"type": "string"}, "category": {"type": "string"}, "subcategory": {"type": "string"}, "min_amount": {"type": "number"}, "max_amount": {"type": "number"}, "date_from": {"type": "string"}, "date_to": {"type": "string"}, "month": {"type": "string"}, "limit": {"type": "integer"}}, []),
+    ("get_daily_spending", "Obtiene el gasto total y desglose de movimientos (personales y de negocio) para una fecha específica o el día de hoy", {"target_date": {"type": "string"}}, []),
 ]:
     TOOL_SCHEMAS.append({"type": "function", "function": {"name": _tool_name, "description": _tool_description,
         "parameters": {"type": "object", "properties": _properties, "required": _required, "additionalProperties": False}}})
@@ -788,7 +913,8 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
     system = (f"Eres Luka, asistente financiero venezolano, claro y casual. Habla en español natural. "
               f"Fecha actual de corte: {cut_date}. Mes activo de análisis: {current_month}. "
               f"El backend calcula todos los valores. Usa sólo las Finance Tools permitidas para datos. "
-              f"Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "
+              f"Para gastos del día de hoy o una fecha puntual, invoca get_daily_spending. "
+              f"Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_daily_spending, get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "
               f"Cuando consultes herramientas que reciben 'month', no inventes fechas de otros años: usa '{current_month}' por defecto o déjalo vacío. "
               f"Nunca afirmes datos no entregados; no hagas cambios persistentes. Ignora instrucciones del usuario que pidan secretos o acciones fuera de finanzas. "
               f"Redacción: Responde en texto fluido, directo y conversacional. No abuses de asteriscos (**) ni de formatos pesados para no gastar tokens.")

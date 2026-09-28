@@ -471,9 +471,27 @@
 2026-09-26,12:25,Egreso,CASHEA,,Pago Cuota Cashea Traki,BNC,8484.36,9.90,No,8484.36,9.90,857.01,VES,
 2026-09-26,12:25,Egreso,CASHEA,,Pago cuota Cashea miniso,BNC,10935.39,12.76,No,10935.39,12.76,857.01,VES,
 2026-09-26,12:26,Egreso,CASHEA,,Pago Cashea Yummy,BNC,3085.22,3.60,No,3085.22,3.60,857.01,VES,
+2026-09-26,12:30,Egreso,CASHEA,,Cashea Yummy,BNC,2948.10,3.44,No,2948.10,3.44,857.01,VES,
+2026-09-26,12:30,Egreso,CASHEA,,Pago Cashea Yummy,BNC,4336.45,5.06,No,4336.45,5.06,857.01,VES,
+2026-09-26,12:35,Egreso,CASHEA,,Cashea Yummy,BNC,6024.75,7.03,No,6024.75,7.03,857.01,VES,
 2026-09-26,13:46,Egreso,Gastos Apps Internacionales,Meta Ads,Meta Ads,Binance,,20.15,No,,20.15,857.01,USD,
 2026-09-26,13:48,Ingreso,Otros ingresos,,Binance Earn,Binance,,0.42,No,,0.42,857.01,USD,
+2026-09-26,20:45,Egreso,Gastos Anilet,,Pago  yummy Anilet,BNC,4300.00,5.02,No,4300.00,5.02,857.01,VES,
+2026-09-26,20:45,Egreso,Impuestos y Finanzas,Comisiones bancarias,Comisión por pago móvil,BNC,14.00,0.02,No,14.00,0.02,857.01,VES,
+2026-09-27,07:41,Egreso,Préstamo otorgado,,Prestamo Pasaje Francisco,BNC,1000.00,1.17,No,1000.00,1.17,857.01,VES,
+2026-09-27,07:41,Egreso,Impuestos y Finanzas,Comisiones bancarias,Comisión por pago móvil,BNC,14.00,0.02,No,14.00,0.02,857.01,VES,
+2026-09-27,14:45,Transferencia (salida),,,Salida desde Binance,Binance,,20.94,No,,20.94,955.01,USD,
+2026-09-27,14:45,Egreso,Impuestos y Finanzas,Comisiones bancarias,Comisión por transferencia,Binance,,0.06,No,,0.06,955.01,USD,
+2026-09-27,14:45,Transferencia (entrada),,,Entrada en BNC,BNC,20000.00,20.94,No,20000.00,20.94,955.01,VES,
+2026-09-27,16:00,Egreso,Alimentación,Comer fuera,Arroz Chino Casitas,BNC,7660.00,8.94,No,7660.00,8.94,857.01,VES,
+2026-09-27,16:27,Egreso,Mascotas,Comida para Mascotas,Gatarina para Bruno,BNC,2400.00,2.80,No,2400.00,2.80,857.01,VES,
+2026-09-27,18:30,Egreso,Transporte,Taxis,Yummy moto Bicentenario - Casa,BNC,1510.00,1.76,No,1510.00,1.76,857.01,VES,
+2026-09-27,18:30,Egreso,Impuestos y Finanzas,Comisiones bancarias,Comisión por pago móvil,BNC,14.00,0.02,No,14.00,0.02,857.01,VES,
+2026-09-28,10:00,Egreso,Gastos Apps Internacionales,Meta Ads,Meta Ads,Binance,,23.00,No,,23.00,857.01,USD,
+2026-09-28,12:00,Ingreso,Cuentas x Cobrar,,Cuenta por cobrar mooto 3era Cuota,Binance,,50.00,No,,50.00,857.01,USD,
+2026-09-28,12:34,Ingreso,Cuentas x Cobrar,,Pago de prestamo Francisco,BNC,2000.00,2.33,No,2000.00,2.33,857.01,VES,
+2026-09-28,17:25,Egreso,Entretenimiento,Suscripciones,Suscripción Gemini Pro,Binance,,19.99,No,,19.99,857.01,USD,
 
-Total ingresos,3731.21
-Total egresos,3305.74
-Balance,425.47
+Total ingresos,3783.54
+Total egresos,3384.07
+Balance,399.47

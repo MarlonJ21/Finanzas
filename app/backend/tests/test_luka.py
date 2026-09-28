@@ -274,3 +274,24 @@ def test_deterministic_movement_questions(monkeypatch: pytest.MonkeyPatch) -> No
     ans_breach = luka.answer("¿En qué movimiento superé el presupuesto de Salud?")
     assert ans_breach["provider"] == "deterministic"
     assert "find_budget_breach_transaction" in ans_breach["tool_calls"]
+
+    ans_today = luka.answer("¿Cuánto había gastado hoy?")
+    assert ans_today["provider"] == "deterministic"
+    assert "get_daily_spending" in ans_today["tool_calls"]
+    assert "$42.99" in ans_today["message"]
+    assert "Gemini" in ans_today["message"]
+
+
+def test_get_daily_spending() -> None:
+    res = luka.get_daily_spending("2026-09-28")
+    assert res["date"] == "2026-09-28"
+    assert res["total_spent_usd"] == 42.99
+    assert res["personal_spent_usd"] == 19.99
+    assert res["business_spent_usd"] == 23.00
+    assert res["total_income_usd"] == 52.33
+    assert res["expense_count"] == 2
+    # Verify Gemini is classified as Suscripciones / Herramientas
+    gemini_item = next(e for e in res["expenses"] if "Gemini" in e["description"])
+    assert gemini_item["category"] == "Suscripciones / Herramientas"
+    assert gemini_item["subcategory"] == "Gemini"
+
