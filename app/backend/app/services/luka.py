@@ -36,7 +36,7 @@ def provider_key(name: str) -> str:
 
 
 def model_for(name: str) -> str:
-    defaults = {"groq": "llama-3.3-70b-versatile", "gemini": "gemini-2.0-flash", "openrouter": "openai/gpt-4o-mini"}
+    defaults = {"groq": "llama-3.3-70b-versatile", "gemini": "gemini-2.5-flash", "openrouter": "openai/gpt-4o-mini"}
     return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults[name])
 
 
