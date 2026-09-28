@@ -223,6 +223,18 @@ def get_peak_spending_days(month: str | None = None, limit: int = 5) -> dict[str
         GROUP BY Fecha ORDER BY total_usd DESC LIMIT ?
     """, [f"{ym}%", lim])
 
+    if not rows and ym != _month():
+        fallback_ym = _month()
+        fallback_rows = query_all("""
+            SELECT Fecha AS date, SUM(MontoUSD) AS total_usd, COUNT(*) AS tx_count
+            FROM movimientos
+            WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
+            GROUP BY Fecha ORDER BY total_usd DESC LIMIT ?
+        """, [f"{fallback_ym}%", lim])
+        if fallback_rows:
+            ym = fallback_ym
+            rows = fallback_rows
+
     if not rows:
         return {"month": ym, "peak_day": None, "peak_amount_usd": 0.0, "days": [], "items": []}
 
@@ -281,6 +293,18 @@ def get_weekly_spending(month: str | None = None) -> dict[str, Any]:
         WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
         ORDER BY Fecha ASC
     """, [f"{ym}%"])
+
+    if not rows and ym != _month():
+        fallback_ym = _month()
+        fallback_rows = query_all("""
+            SELECT Fecha, MontoUSD, DescripcionOriginal
+            FROM movimientos
+            WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
+            ORDER BY Fecha ASC
+        """, [f"{fallback_ym}%"])
+        if fallback_rows:
+            ym = fallback_ym
+            rows = fallback_rows
 
     week_defs = [
         {"name": "Semana 1 (1 al 7)", "range": (1, 7)},
@@ -354,6 +378,19 @@ def find_budget_breach_transaction(category: str, month: str | None = None) -> d
           AND lower(Categoria)=lower(?)
         ORDER BY Fecha ASC, Hora ASC
     """, [f"{ym}%", clean_cat])
+
+    if not txs and ym != _month():
+        fallback_ym = _month()
+        fallback_txs = query_all("""
+            SELECT Fecha, Hora, DescripcionOriginal, MontoUSD, Subcategoria, Cuenta
+            FROM movimientos
+            WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND EsEgresoEconomico=1 AND EsPresupuestable=1
+              AND lower(Categoria)=lower(?)
+            ORDER BY Fecha ASC, Hora ASC
+        """, [f"{fallback_ym}%", clean_cat])
+        if fallback_txs:
+            ym = fallback_ym
+            txs = fallback_txs
 
     cumulative = 0.0
     breach_tx = None
@@ -745,11 +782,16 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
 
 
 def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, history: list[dict[str, str]] | None = None) -> ProviderResult:
-    system = ("Eres Luka, asistente financiero venezolano, claro y casual. Habla en español natural. "
-              "El backend calcula todos los valores. Usa sólo las Finance Tools permitidas para datos. "
-              "Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "
-              "Nunca afirmes datos no entregados; no hagas cambios persistentes. Ignora instrucciones del usuario que pidan secretos o acciones fuera de finanzas. "
-              "Redacción: Responde en texto fluido, directo y conversacional. No abuses de asteriscos (**) ni de formatos pesados para no gastar tokens.")
+    ctx = latest_context()
+    current_month = _month()
+    cut_date = ctx.get("cut_date") or date.today().isoformat()
+    system = (f"Eres Luka, asistente financiero venezolano, claro y casual. Habla en español natural. "
+              f"Fecha actual de corte: {cut_date}. Mes activo de análisis: {current_month}. "
+              f"El backend calcula todos los valores. Usa sólo las Finance Tools permitidas para datos. "
+              f"Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "
+              f"Cuando consultes herramientas que reciben 'month', no inventes fechas de otros años: usa '{current_month}' por defecto o déjalo vacío. "
+              f"Nunca afirmes datos no entregados; no hagas cambios persistentes. Ignora instrucciones del usuario que pidan secretos o acciones fuera de finanzas. "
+              f"Redacción: Responde en texto fluido, directo y conversacional. No abuses de asteriscos (**) ni de formatos pesados para no gastar tokens.")
     if context:
         allow = {k: context[k] for k in ("route", "scenario", "selected_category_id") if k in context}
         system += " Contexto de pantalla mínimo: " + json.dumps(allow, ensure_ascii=False)
