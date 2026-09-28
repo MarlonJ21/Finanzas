@@ -36,7 +36,7 @@ def provider_key(name: str) -> str:
 
 
 def model_for(name: str) -> str:
-    defaults = {"groq": "llama-3.3-70b-versatile", "gemini": "gemini-2.5-flash", "openrouter": "openai/gpt-4o-mini"}
+    defaults = {"groq": "llama-3.3-70b-versatile", "gemini": "gemini-3.8-flash", "openrouter": "openai/gpt-4o-mini"}
     return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults[name])
 
 
@@ -340,19 +340,31 @@ class ProviderResult:
 def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     if name == "groq":
         base = "https://api.groq.com/openai/v1/chat/completions"
+        models_to_try = [model_for("groq")]
     elif name == "gemini":
         base = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        custom = os.getenv("LUKA_GEMINI_MODEL")
+        models_to_try = [custom] if custom else ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
     else:
         base = "https://openrouter.ai/api/v1/chat/completions"
+        models_to_try = [model_for("openrouter")]
     headers = {"Authorization": f"Bearer {provider_key(name)}", "Content-Type": "application/json"}
     if name == "openrouter": headers["HTTP-Referer"] = os.getenv("OPENROUTER_SITE_URL", "https://localhost")
-    payload: dict[str, Any] = {"model": model_for(name), "messages": messages, "temperature": 0.2}
-    if name != "gemini":
-        payload["parallel_tool_calls"] = False
-    if tools: payload.update({"tools": tools, "tool_choice": "auto"})
-    response = httpx.post(base, headers=headers, json=payload, timeout=20)
-    response.raise_for_status()
-    return response.json()
+    last_resp = None
+    for model_name in models_to_try:
+        payload: dict[str, Any] = {"model": model_name, "messages": messages, "temperature": 0.2}
+        if name != "gemini":
+            payload["parallel_tool_calls"] = False
+        if tools: payload.update({"tools": tools, "tool_choice": "auto"})
+        response = httpx.post(base, headers=headers, json=payload, timeout=20)
+        if response.status_code == 404 and len(models_to_try) > 1:
+            last_resp = response
+            continue
+        response.raise_for_status()
+        return response.json()
+    if last_resp is not None:
+        last_resp.raise_for_status()
+    raise RuntimeError("No model succeeded")
 
 
 def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, history: list[dict[str, str]] | None = None) -> ProviderResult:
