@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Mic, Play, Send, Square, Trash2, Volume2 } from "lucide-react";
@@ -153,11 +153,70 @@ export default function LukaPage() {
   }
 
   async function startRecording() {
+    setError("");
+    const SpeechRecognitionClass = typeof window !== "undefined" ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
+
+    if (SpeechRecognitionClass) {
+      try {
+        const recognizer = new SpeechRecognitionClass();
+        recognizer.lang = "es-VE";
+        recognizer.continuous = true;
+        recognizer.interimResults = true;
+
+        recognizer.onstart = () => {
+          setRecording(true);
+          setSeconds(0);
+        };
+
+        recognizer.onresult = (event: any) => {
+          let full = "";
+          for (let i = 0; i < event.results.length; ++i) {
+            full += event.results[i][0].transcript;
+          }
+          if (full.trim()) {
+            speechTranscriptRef.current = full.trim();
+            setInput(full.trim());
+            setTranscribedPreview(full.trim());
+          }
+        };
+
+        recognizer.onerror = (event: any) => {
+          console.warn("SpeechRec error:", event.error);
+          if (event.error === "not-allowed" || event.error === "permission-denied") {
+            setError("Permiso de micrófono denegado. Permite el micrófono en tu navegador.");
+          } else if (event.error === "network") {
+            setError("No se pudo conectar al servicio de voz. Puedes escribir tu pregunta.");
+          }
+          stopRecording();
+        };
+
+        recognizer.onend = () => {
+          setRecording(false);
+          if (timer.current) clearInterval(timer.current);
+        };
+
+        recognizer.start();
+        recognitionRef.current = recognizer;
+        setRecording(true);
+        setSeconds(0);
+
+        timer.current = setInterval(() => setSeconds((n) => {
+          if (n >= 59) { stopRecording(); return 60; }
+          return n + 1;
+        }), 1000);
+        return;
+      } catch (err) {
+        console.warn("SpeechRecognition start failed, falling back to MediaRecorder", err);
+      }
+    }
+
+    // Fallback: MediaRecorder if SpeechRecognition is not supported
     try {
       speechTranscriptRef.current = "";
       setTranscribedPreview("");
       const media = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.current = media; chunks.current = [];
+      stream.current = media;
+      chunks.current = [];
       const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
       const instance = new MediaRecorder(media, mime ? { mimeType: mime } : undefined);
       recorder.current = instance;
@@ -166,71 +225,53 @@ export default function LukaPage() {
         setRecorded(new Blob(chunks.current, { type: instance.mimeType || "audio/webm" }));
         media.getTracks().forEach((track) => track.stop());
       };
-      instance.start(); setRecording(true); setSeconds(0);
-
-      // Start browser native Web Speech recognition in parallel (supported in Chrome, Edge, Safari)
-      const SpeechRecognitionClass = typeof window !== "undefined" ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
-      if (SpeechRecognitionClass) {
-        try {
-          const recognizer = new SpeechRecognitionClass();
-          recognizer.lang = "es-VE";
-          recognizer.continuous = true;
-          recognizer.interimResults = true;
-          recognizer.onresult = (event: any) => {
-            let full = "";
-            for (let i = 0; i < event.results.length; ++i) {
-              full += event.results[i][0].transcript;
-            }
-            if (full.trim()) {
-              speechTranscriptRef.current = full.trim();
-              setTranscribedPreview(full.trim());
-            }
-          };
-          recognizer.onerror = () => { /* fallback gracefully to server */ };
-          recognizer.start();
-          recognitionRef.current = recognizer;
-        } catch {
-          // ignore error if speech recognition cannot initialize
-        }
-      }
-
+      instance.start();
+      setRecording(true);
+      setSeconds(0);
       timer.current = setInterval(() => setSeconds((n) => {
-        if (n >= 59) { window.setTimeout(() => stopRecording(), 0); return 60; }
+        if (n >= 59) { stopRecording(); return 60; }
         return n + 1;
       }), 1000);
-    } catch { setError("No pude acceder al micrófono. Puedes escribir tu pregunta."); }
+    } catch {
+      setError("No pude acceder al micrófono. Puedes escribir tu pregunta.");
+    }
   }
 
   function stopRecording() {
-    recorder.current?.stop(); setRecording(false);
+    setRecording(false);
     if (timer.current) clearInterval(timer.current);
     try { recognitionRef.current?.stop(); } catch {}
+    try { recorder.current?.stop(); } catch {}
   }
 
   async function sendRecording() {
-    if ((!recorded && !speechTranscriptRef.current) || busy) return;
-    setBusy(true); setError("");
-
-    // If browser native recognition captured the text, use it directly (0ms latency, 100% reliable)
-    if (speechTranscriptRef.current.trim()) {
-      const text = speechTranscriptRef.current.trim();
+    const textToSend = speechTranscriptRef.current.trim() || input.trim();
+    if (textToSend) {
       speechTranscriptRef.current = "";
       setRecorded(null);
       setTranscribedPreview("");
-      setBusy(false);
-      await send(text, true);
+      await send(textToSend, true);
       return;
     }
 
-    if (!recorded) { setBusy(false); return; }
-    const form = new FormData(); form.append("file", recorded, "voice.webm");
+    if (!recorded || busy) return;
+    setBusy(true);
+    setError("");
+    const form = new FormData();
+    form.append("file", recorded, "voice.webm");
     try {
       const res = await fetch(`${getApiBase()}/luka/transcribe`, { method: "POST", body: form });
       if (!res.ok) throw new Error("No pude procesar el audio ahora mismo. Puedes escribir tu pregunta.");
-      const data = await res.json(); setRecorded(null); setTranscribedPreview("");
+      const data = await res.json();
+      setRecorded(null);
+      setTranscribedPreview("");
       if (!data.text) throw new Error("No logré entender el audio. Puedes escribir tu pregunta.");
-      setBusy(false); await send(data.text, true);
-    } catch (e) { setError(e instanceof Error ? e.message : "No pude procesar el audio."); setBusy(false); }
+      setBusy(false);
+      await send(data.text, true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No pude procesar el audio.");
+      setBusy(false);
+    }
   }
 
   function submit(event: FormEvent) { event.preventDefault(); void send(); }
