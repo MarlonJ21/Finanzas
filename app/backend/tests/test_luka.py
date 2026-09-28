@@ -214,3 +214,63 @@ def test_transcription_unavailable_keeps_text_chat_available(monkeypatch: pytest
     assert response.status_code == 503
     assert response.json()["detail"] == "STT_NOT_AVAILABLE"
     assert client.post("/api/luka/chat", json={"message": "¿Cuánto puedo gastar?"}).status_code == 200
+
+
+def test_get_peak_spending_days() -> None:
+    res = luka.get_peak_spending_days()
+    assert "month" in res
+    assert "peak_day" in res
+    assert "peak_amount_usd" in res
+    assert isinstance(res["days"], list)
+    if res["days"]:
+        top = res["days"][0]
+        assert "date" in top and "total_usd" in top and "tx_count" in top
+        assert top["total_usd"] == res["peak_amount_usd"]
+
+
+def test_get_weekly_spending() -> None:
+    res = luka.get_weekly_spending()
+    assert "month" in res
+    assert "weeks" in res
+    assert len(res["weeks"]) == 5
+    assert "total_month_usd" in res
+    if res["peak_week"]:
+        assert res["peak_week_amount_usd"] > 0
+
+
+def test_find_budget_breach_transaction() -> None:
+    # Test breach in Salud
+    res = luka.find_budget_breach_transaction("Salud")
+    assert res["category"].lower() == "salud"
+    assert res["budget_usd"] > 0
+    if res["breached"]:
+        assert res["breach_transaction"] is not None
+        assert "date" in res["breach_transaction"]
+        assert "amount_usd" in res["breach_transaction"]
+        assert res["over_by"] > 0
+
+
+def test_search_transactions() -> None:
+    # Test general search with min_amount
+    res = luka.search_transactions(min_amount=10, limit=5)
+    assert "items" in res
+    assert res["count"] == len(res["items"])
+    assert all(item["amount_usd"] >= 10 for item in res["items"])
+
+
+def test_deterministic_movement_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Ensure keys are clear so deterministic path is tested
+    for name in ("DEEPSEEK_API_KEY", "KIMI_API_KEY", "MOONSHOT_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "NVIDIA_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+    ans_day = luka.answer("¿Cuál fue el día que más gasté en el mes?")
+    assert ans_day["provider"] == "deterministic"
+    assert "get_peak_spending_days" in ans_day["tool_calls"]
+
+    ans_week = luka.answer("¿En qué semana gasté más?")
+    assert ans_week["provider"] == "deterministic"
+    assert "get_weekly_spending" in ans_week["tool_calls"]
+
+    ans_breach = luka.answer("¿En qué movimiento superé el presupuesto de Salud?")
+    assert ans_breach["provider"] == "deterministic"
+    assert "find_budget_breach_transaction" in ans_breach["tool_calls"]

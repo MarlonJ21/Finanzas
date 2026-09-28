@@ -14,7 +14,15 @@ type Message = {
   provider?: string;
   model?: string | null;
 };
-const prompts = ["¿Cómo voy este mes?", "¿En qué he gastado más?", "¿Cuánto puedo gastar?", "¿Puedo comprar algo de $80?", "¿Cómo voy esta quincena?"];
+const prompts = [
+  "¿Cómo voy este mes?",
+  "¿Cuál fue el día que más gasté?",
+  "¿En qué semana gasté más?",
+  "¿En qué he gastado más?",
+  "¿Cuánto puedo gastar?",
+  "¿Puedo comprar algo de $80?",
+  "¿Cómo voy esta quincena?",
+];
 
 function formatModelTag(provider?: string, model?: string | null, fallback?: boolean) {
   if (fallback || provider === "deterministic") {
@@ -307,6 +315,11 @@ function DataCard({ card }: { card: Record<string, any> }) {
   add("monthly_available_after_down_payment", "Disponible tras la inicial"); add("safe_to_spend_before", "Safe to Spend antes"); add("safe_to_spend_after", "Safe to Spend después");
   add("biweekly_available_before", "Quincena antes"); add("biweekly_available_after", "Quincena después"); add("down_payment_usd", "Inicial"); add("financed_amount", "Monto financiado");
   add("installment_usd", "Monto por cuota"); add("new_future_commitment", "Compromiso futuro");
+  add("peak_day", "Día con mayor gasto"); add("peak_amount_usd", "Gasto del día pico");
+  add("peak_week", "Semana de mayor gasto"); add("peak_week_amount_usd", "Gasto de semana pico");
+  add("category", "Categoría"); add("budget_usd", "Presupuesto"); add("total_spent_usd", "Gasto acumulado");
+  add("breach_date", "Fecha superada"); add("breach_tx_desc", "Movimiento detonante"); add("breach_tx_amount", "Monto detonante"); add("over_by", "Superado por");
+  add("total_amount_usd", "Monto total");
   const items = card.items as { label?: string; amount_usd?: number }[] | undefined;
   if (!pairs.length && !items?.length) return null;
   return <div className="luka-card">{pairs.map(([label, value]) => <div key={label}><span>{label}</span><strong>{typeof value === "number" ? `$${value.toFixed(2)}` : String(value)}</strong></div>)}{items?.map((item, i) => <div key={i}><span>{item.label}</span><strong>${Number(item.amount_usd ?? 0).toFixed(2)}</strong></div>)}</div>;
