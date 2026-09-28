@@ -338,7 +338,12 @@ class ProviderResult:
 
 
 def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    base = "https://api.groq.com/openai/v1/chat/completions" if name == "groq" else "https://openrouter.ai/api/v1/chat/completions"
+    if name == "groq":
+        base = "https://api.groq.com/openai/v1/chat/completions"
+    elif name == "gemini":
+        base = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    else:
+        base = "https://openrouter.ai/api/v1/chat/completions"
     headers = {"Authorization": f"Bearer {provider_key(name)}", "Content-Type": "application/json"}
     if name == "openrouter": headers["HTTP-Referer"] = os.getenv("OPENROUTER_SITE_URL", "https://localhost")
     payload: dict[str, Any] = {"model": model_for(name), "messages": messages, "temperature": 0.2}
@@ -347,45 +352,6 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
     response = httpx.post(base, headers=headers, json=payload, timeout=20)
     response.raise_for_status()
     return response.json()
-
-
-def _gemini_call(messages: list[dict[str, Any]], use_tools: bool = False) -> dict[str, Any]:
-    model = model_for("gemini")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    system = next((m["content"] for m in messages if m["role"] == "system"), "")
-    contents: list[dict[str, Any]] = []
-    for m in messages:
-        if m["role"] == "system":
-            continue
-        if m["role"] == "assistant" and m.get("tool_calls"):
-            parts = [{"functionCall": {"name": c["function"]["name"], "args": json.loads(c["function"].get("arguments") or "{}")}} for c in m["tool_calls"]]
-            contents.append({"role": "model", "parts": parts})
-        elif m["role"] == "tool":
-            contents.append({"role": "user", "parts": [{"functionResponse": {"name": m["name"], "response": {"result": json.loads(m["content"])}}}]})
-        else:
-            contents.append({"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]})
-    body: dict[str, Any] = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents, "generationConfig": {"temperature": .2}}
-    if use_tools:
-        decls = []
-        for x in TOOL_SCHEMAS:
-            fn = x["function"]
-            decl: dict[str, Any] = {"name": fn["name"], "description": fn["description"]}
-            params = fn.get("parameters", {})
-            props = params.get("properties", {})
-            if props:
-                cleaned_props = {pk: {k: v for k, v in pv.items() if k != "additionalProperties"} for pk, pv in props.items()}
-                decl["parameters"] = {"type": "OBJECT", "properties": cleaned_props}
-                if params.get("required"):
-                    decl["parameters"]["required"] = params["required"]
-            decls.append(decl)
-        body["tools"] = [{"functionDeclarations": decls}]
-    response = httpx.post(url, params={"key": provider_key("gemini")}, json=body, timeout=20)
-    response.raise_for_status()
-    data = response.json()
-    parts = data["candidates"][0]["content"]["parts"]
-    function = next((p["functionCall"] for p in parts if "functionCall" in p), None)
-    return {"choices": [{"message": {"content": next((p.get("text", "") for p in parts if "text" in p), ""),
-                                          "tool_calls": [{"function": {"name": function["name"], "arguments": json.dumps(function.get("args", {}))}}] if function else None}}]}
 
 
 def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, history: list[dict[str, str]] | None = None) -> ProviderResult:
@@ -403,7 +369,7 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
     names: list[str] = []
     card = None
     for _ in range(MAX_TOOL_CALLS + 1):
-        data = _gemini_call(messages, bool(names) is False) if provider == "gemini" else _openai_call(provider, messages, TOOL_SCHEMAS)
+        data = _openai_call(provider, messages, TOOL_SCHEMAS)
         msg = data["choices"][0]["message"]
         calls = msg.get("tool_calls") or []
         if not calls:
