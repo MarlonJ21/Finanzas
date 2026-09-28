@@ -96,6 +96,9 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .luka-message.user .luka-bubble { border-color: rgba(32,215,232,.38); border-radius: 16px 16px 4px 16px; background: rgba(32,215,232,.1); }
 .luka-bubble p { margin: 0; }
 .luka-transcript { display: block; margin-bottom: 5px; color: var(--muted); font-size: .75rem; }
+.luka-mode-pill { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 3px 9px; border-radius: 9999px; font-size: 0.72rem; font-weight: 650; background: rgba(245, 197, 66, 0.1); border: 1px solid rgba(245, 197, 66, 0.35); color: var(--yellow); cursor: default; max-width: 100%; }
+.luka-mode-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 6px rgba(245, 197, 66, 0.6); flex-shrink: 0; }
+.luka-mode-reason { color: var(--muted); font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .luka-play { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 0; border: 0; color: var(--cyan); background: none; font-size: .8rem; }
 .luka-card { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1px; overflow: hidden; min-width: min(100%,300px); border: 1px solid var(--border); border-radius: 12px; background: var(--border); }
 .luka-card > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; background: rgba(17,36,69,.95); }

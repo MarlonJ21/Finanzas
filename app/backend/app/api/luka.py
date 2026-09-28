@@ -53,6 +53,8 @@ def luka_chat(payload: ChatPayload) -> dict:
             "model": None,
             "tool_calls": [tool] if tool else [],
             "fallback_used": True,
+            "fallback_reason": "Error inesperado en el servidor.",
+            "provider_error": str(exc),
         }
     result["conversation_id"] = payload.conversation_id or str(uuid.uuid4())
     result["response_mode"] = payload.response_mode

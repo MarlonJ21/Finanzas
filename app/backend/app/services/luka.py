@@ -357,8 +357,9 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
             payload["parallel_tool_calls"] = False
         if tools: payload.update({"tools": tools, "tool_choice": "auto"})
         response = httpx.post(base, headers=headers, json=payload, timeout=20)
-        if response.status_code == 404 and len(models_to_try) > 1:
+        if response.status_code in {404, 429, 500, 502, 503} and len(models_to_try) > 1:
             last_resp = response
+            log.warning("luka provider=%s model=%s status=%s, trying next model", name, model_name, response.status_code)
             continue
         response.raise_for_status()
         return response.json()
@@ -390,16 +391,24 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
         if len(names) >= MAX_TOOL_CALLS:
             return ProviderResult("Ya consulté el máximo de datos para este turno. Si quieres, pregúntame por una parte específica.", card, names)
         calls = calls[:1]
-        messages.append({"role": "assistant", "content": msg.get("content") or "", "tool_calls": calls})
+        assistant_msg: dict[str, Any] = {"role": "assistant", "tool_calls": calls}
+        if msg.get("content"):
+            assistant_msg["content"] = msg["content"]
+        messages.append(assistant_msg)
         for call in calls[:MAX_TOOL_CALLS-len(names)]:
             fn = call.get("function", {})
-            name = fn.get("name")
-            if name not in TOOLS: continue
+            fn_name = fn.get("name")
+            if fn_name not in TOOLS: continue
             args = json.loads(fn.get("arguments") or "{}")
-            result = TOOLS[name](**args)
-            names.append(name)
+            result = TOOLS[fn_name](**args)
+            names.append(fn_name)
             if isinstance(result, dict): card = result
-            messages.append({"role": "tool", "tool_call_id": call.get("id", name), "name": name, "content": json.dumps(result, ensure_ascii=False)})
+            tool_msg = {
+                "role": "tool",
+                "tool_call_id": call.get("id") or f"call_{fn_name}",
+                "content": json.dumps(result, ensure_ascii=False)
+            }
+            messages.append(tool_msg)
     return ProviderResult("Puedo consultar esos datos, pero necesito que concretes la pregunta.", card, names)
 
 
@@ -413,7 +422,7 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
             result = _llm_turn(name, message, context, history)
             latency = round((time.monotonic()-started)*1000)
             log.info("luka provider=%s model=%s latency_ms=%s fallback_count=%s success=true tool_count=%s", name, model_for(name), latency, index, len(result.tool_names))
-            return {"message": result.text, "structured_cards": result.card, "provider": name, "model": model_for(name), "tool_calls": result.tool_names, "fallback_used": False}
+            return {"message": result.text, "structured_cards": result.card, "provider": name, "model": model_for(name), "tool_calls": result.tool_names, "fallback_used": False, "fallback_reason": None, "provider_error": None}
         except (httpx.TimeoutException, httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as exc:
             if isinstance(exc, httpx.HTTPStatusError):
                 last_error = f"{exc.response.status_code}: {exc.response.text[:250]}"
@@ -421,10 +430,35 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
                 last_error = str(exc)
             latency = round((time.monotonic()-started)*1000)
             log.warning("luka provider=%s model=%s latency_ms=%s fallback_count=%s error=%s", name, model_for(name), latency, index, last_error)
-    # The deterministic router always computes values locally without exposing them to a model.
+
     text, card, tool = _deterministic(message)
-    return {"message": ("Estoy en modo básico porque los modelos de lenguaje no están disponibles ahora mismo, pero todavía puedo consultar y simular tus finanzas. " if order else "") + text,
-            "structured_cards": card, "provider": "deterministic", "model": None, "tool_calls": [tool] if tool else [], "fallback_used": bool(order), "provider_error": last_error}
+    fallback_reason = None
+    if bool(order):
+        if last_error:
+            err_lower = last_error.lower()
+            if "429" in last_error or "quota" in err_lower or "resource_exhausted" in err_lower or "rate" in err_lower:
+                fallback_reason = "Límite temporal de peticiones (429 Rate Limit) alcanzado en la IA."
+            elif "404" in last_error:
+                fallback_reason = "El modelo de IA solicitado no está disponible en la API."
+            elif "timeout" in err_lower:
+                fallback_reason = "Tiempo de espera agotado al consultar el modelo de IA."
+            else:
+                fallback_reason = "Servicio de IA temporalmente no disponible."
+        else:
+            fallback_reason = "Modo local activo."
+    else:
+        fallback_reason = "Sin proveedor de IA configurado."
+
+    return {
+        "message": text,
+        "structured_cards": card,
+        "provider": "deterministic",
+        "model": None,
+        "tool_calls": [tool] if tool else [],
+        "fallback_used": bool(order),
+        "fallback_reason": fallback_reason,
+        "provider_error": last_error
+    }
 
 
 def transcribe_audio(content: bytes, mime_type: str) -> str:

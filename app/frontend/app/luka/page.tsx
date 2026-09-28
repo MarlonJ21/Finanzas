@@ -4,7 +4,15 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Mic, Play, Send, Square, Trash2, Volume2 } from "lucide-react";
 import { getApiBase } from "../../lib/api";
 
-type Message = { role: "user" | "assistant"; text: string; card?: Record<string, any> | null; audio?: boolean };
+type Message = {
+  role: "user" | "assistant";
+  text: string;
+  card?: Record<string, any> | null;
+  audio?: boolean;
+  fallback_used?: boolean;
+  fallback_reason?: string | null;
+  provider?: string;
+};
 const prompts = ["¿Cómo voy este mes?", "¿En qué he gastado más?", "¿Cuánto puedo gastar?", "¿Puedo comprar algo de $80?", "¿Cómo voy esta quincena?"];
 
 export default function LukaPage() {
@@ -50,7 +58,14 @@ export default function LukaPage() {
       if (!response.ok) throw new Error("No pude consultar tus números ahora. Intenta otra vez en un momento.");
       const data = await response.json();
       setConversationId(data.conversation_id);
-      setMessages((items) => [...items, { role: "assistant", text: data.message, card: data.structured_cards }]);
+      setMessages((items) => [...items, {
+        role: "assistant",
+        text: data.message,
+        card: data.structured_cards,
+        fallback_used: data.fallback_used,
+        fallback_reason: data.fallback_reason,
+        provider: data.provider,
+      }]);
       if (fromAudio && autoVoice) speak(data.message);
     } catch (e) { setError(e instanceof Error ? e.message : "No pude enviar tu mensaje."); }
     finally { setBusy(false); }
@@ -96,7 +111,23 @@ export default function LukaPage() {
     <header className="luka-header"><span className="luka-avatar"><Bot size={23} /></span><div><p className="eyebrow">Asistente financiero personal</p><h1>LUKA</h1><p className="subtle">Pregúntame por tus gastos o simula una compra.</p></div><label className="luka-voice-toggle"><input type="checkbox" checked={autoVoice} onChange={(e) => { setAutoVoice(e.target.checked); localStorage.setItem("luka-auto-voice", String(e.target.checked)); }} /> Voz al enviar audio</label></header>
     <div className="luka-chat" aria-live="polite">
       {!messages.length ? <div className="luka-welcome"><span className="luka-avatar large"><Bot size={30} /></span><h2>¿En qué te ayudo?</h2><p>Reviso tus números reales y también podemos simular compras.</p><div className="luka-prompts">{prompts.map((q) => <button className="secondary-button" key={q} onClick={() => void send(q)}>{q}</button>)}</div></div> : null}
-      {messages.map((m, i) => <article className={`luka-message ${m.role}`} key={i}><div className="luka-bubble">{m.audio ? <span className="luka-transcript">Tú · audio · transcripción</span> : null}<p>{m.text}</p>{m.role === "assistant" ? <button className="luka-play" onClick={() => speak(m.text)}><Volume2 size={15} /> Reproducir</button> : null}</div>{m.card ? <DataCard card={m.card} /> : null}</article>)}
+      {messages.map((m, i) => (
+        <article className={`luka-message ${m.role}`} key={i}>
+          <div className="luka-bubble">
+            {m.audio ? <span className="luka-transcript">Tú · audio · transcripción</span> : null}
+            {m.role === "assistant" && m.fallback_used ? (
+              <div className="luka-mode-pill" title={m.fallback_reason || "Motor financiero local activo"}>
+                <span className="luka-mode-dot" />
+                <span>Modo local</span>
+                {m.fallback_reason ? <span className="luka-mode-reason">· {m.fallback_reason}</span> : null}
+              </div>
+            ) : null}
+            <p>{m.text}</p>
+            {m.role === "assistant" ? <button className="luka-play" onClick={() => speak(m.text)}><Volume2 size={15} /> Reproducir</button> : null}
+          </div>
+          {m.card ? <DataCard card={m.card} /> : null}
+        </article>
+      ))}
       {busy ? <p className="luka-thinking">Luka está revisando tus números…</p> : null}
     </div>
     {error ? <div className="alert-item red" role="alert">{error}</div> : null}
