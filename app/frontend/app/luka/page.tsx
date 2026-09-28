@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Mic, Play, Send, Square, Trash2, Volume2 } from "lucide-react";
@@ -100,10 +100,18 @@ export default function LukaPage() {
   const chunks = useRef<Blob[]>([]);
   const stream = useRef<MediaStream | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const speechTranscriptRef = useRef<string>("");
+  const [transcribedPreview, setTranscribedPreview] = useState("");
 
   useEffect(() => {
     setAutoVoice(localStorage.getItem("luka-auto-voice") !== "false");
-    return () => { stream.current?.getTracks().forEach((track) => track.stop()); if (timer.current) clearInterval(timer.current); window.speechSynthesis?.cancel(); };
+    return () => {
+      stream.current?.getTracks().forEach((track) => track.stop());
+      if (timer.current) clearInterval(timer.current);
+      window.speechSynthesis?.cancel();
+      try { recognitionRef.current?.stop(); } catch {}
+    };
   }, []);
 
   function speak(text: string) {
@@ -120,7 +128,7 @@ export default function LukaPage() {
   async function send(text = input, fromAudio = false) {
     const message = text.trim();
     if (!message || busy) return;
-    setBusy(true); setError(""); setInput("");
+    setBusy(true); setError(""); setInput(""); setTranscribedPreview("");
     setMessages((items) => [...items, { role: "user", text: message, audio: fromAudio }]);
     try {
       const response = await fetch(`${getApiBase()}/luka/chat`, {
@@ -146,14 +154,46 @@ export default function LukaPage() {
 
   async function startRecording() {
     try {
+      speechTranscriptRef.current = "";
+      setTranscribedPreview("");
       const media = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.current = media; chunks.current = [];
       const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
       const instance = new MediaRecorder(media, mime ? { mimeType: mime } : undefined);
       recorder.current = instance;
       instance.ondataavailable = (event) => { if (event.data.size) chunks.current.push(event.data); };
-      instance.onstop = () => { setRecorded(new Blob(chunks.current, { type: instance.mimeType || "audio/webm" })); media.getTracks().forEach((track) => track.stop()); };
+      instance.onstop = () => {
+        setRecorded(new Blob(chunks.current, { type: instance.mimeType || "audio/webm" }));
+        media.getTracks().forEach((track) => track.stop());
+      };
       instance.start(); setRecording(true); setSeconds(0);
+
+      // Start browser native Web Speech recognition in parallel (supported in Chrome, Edge, Safari)
+      const SpeechRecognitionClass = typeof window !== "undefined" ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
+      if (SpeechRecognitionClass) {
+        try {
+          const recognizer = new SpeechRecognitionClass();
+          recognizer.lang = "es-VE";
+          recognizer.continuous = true;
+          recognizer.interimResults = true;
+          recognizer.onresult = (event: any) => {
+            let full = "";
+            for (let i = 0; i < event.results.length; ++i) {
+              full += event.results[i][0].transcript;
+            }
+            if (full.trim()) {
+              speechTranscriptRef.current = full.trim();
+              setTranscribedPreview(full.trim());
+            }
+          };
+          recognizer.onerror = () => { /* fallback gracefully to server */ };
+          recognizer.start();
+          recognitionRef.current = recognizer;
+        } catch {
+          // ignore error if speech recognition cannot initialize
+        }
+      }
+
       timer.current = setInterval(() => setSeconds((n) => {
         if (n >= 59) { window.setTimeout(() => stopRecording(), 0); return 60; }
         return n + 1;
@@ -162,17 +202,32 @@ export default function LukaPage() {
   }
 
   function stopRecording() {
-    recorder.current?.stop(); setRecording(false); if (timer.current) clearInterval(timer.current);
+    recorder.current?.stop(); setRecording(false);
+    if (timer.current) clearInterval(timer.current);
+    try { recognitionRef.current?.stop(); } catch {}
   }
 
   async function sendRecording() {
-    if (!recorded || busy) return;
+    if ((!recorded && !speechTranscriptRef.current) || busy) return;
     setBusy(true); setError("");
+
+    // If browser native recognition captured the text, use it directly (0ms latency, 100% reliable)
+    if (speechTranscriptRef.current.trim()) {
+      const text = speechTranscriptRef.current.trim();
+      speechTranscriptRef.current = "";
+      setRecorded(null);
+      setTranscribedPreview("");
+      setBusy(false);
+      await send(text, true);
+      return;
+    }
+
+    if (!recorded) { setBusy(false); return; }
     const form = new FormData(); form.append("file", recorded, "voice.webm");
     try {
       const res = await fetch(`${getApiBase()}/luka/transcribe`, { method: "POST", body: form });
       if (!res.ok) throw new Error("No pude procesar el audio ahora mismo. Puedes escribir tu pregunta.");
-      const data = await res.json(); setRecorded(null);
+      const data = await res.json(); setRecorded(null); setTranscribedPreview("");
       if (!data.text) throw new Error("No logré entender el audio. Puedes escribir tu pregunta.");
       setBusy(false); await send(data.text, true);
     } catch (e) { setError(e instanceof Error ? e.message : "No pude procesar el audio."); setBusy(false); }
@@ -217,7 +272,20 @@ export default function LukaPage() {
       {busy ? <p className="luka-thinking">Luka está revisando tus números…</p> : null}
     </div>
     {error ? <div className="alert-item red" role="alert">{error}</div> : null}
-    {recording ? <div className="luka-recording"><span className="luka-record-dot" /> Grabando {`0:${String(seconds).padStart(2, "0")}`} <button className="secondary-button" onClick={() => { recorder.current?.stop(); setRecording(false); setRecorded(null); if (timer.current) clearInterval(timer.current); }}>Cancelar</button><button className="primary-button" onClick={stopRecording}><Square size={15} /> Detener</button></div> : recorded ? <div className="luka-recording"><span>Audio listo · {seconds}s</span><button className="ghost-button" aria-label="Descartar audio" onClick={() => setRecorded(null)}><Trash2 size={17} /></button><button className="primary-button" disabled={busy} onClick={() => void sendRecording()}><Send size={15} /> Transcribir y enviar</button></div> : null}
+    {recording ? (
+      <div className="luka-recording">
+        <span className="luka-record-dot" /> Grabando {`0:${String(seconds).padStart(2, "0")}`}
+        {transcribedPreview ? <span style={{ marginLeft: 8, opacity: 0.8, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{transcribedPreview}"</span> : null}
+        <button className="secondary-button" onClick={() => { recorder.current?.stop(); setRecording(false); setRecorded(null); setTranscribedPreview(""); if (timer.current) clearInterval(timer.current); try { recognitionRef.current?.stop(); } catch {} }}>Cancelar</button>
+        <button className="primary-button" onClick={stopRecording}><Square size={15} /> Detener</button>
+      </div>
+    ) : (recorded || transcribedPreview) ? (
+      <div className="luka-recording">
+        <span>Audio listo · {seconds}s{transcribedPreview ? ` ("${transcribedPreview.length > 30 ? transcribedPreview.slice(0, 30) + '...' : transcribedPreview}")` : ""}</span>
+        <button className="ghost-button" aria-label="Descartar audio" onClick={() => { setRecorded(null); setTranscribedPreview(""); }}><Trash2 size={17} /></button>
+        <button className="primary-button" disabled={busy} onClick={() => void sendRecording()}><Send size={15} /> Transcribir y enviar</button>
+      </div>
+    ) : null}
     <form className="luka-composer" onSubmit={submit}><button type="button" className="luka-mic" aria-label={recording ? "Detener grabación" : "Grabar audio"} disabled={busy} onClick={() => recording ? stopRecording() : void startRecording()}><Mic size={20} /></button><input aria-label="Escribe tu pregunta" value={input} onChange={(e) => setInput(e.target.value)} maxLength={4000} placeholder="Pregúntale a LUKA…" /><button className="primary-button" type="submit" disabled={!input.trim() || busy}><Send size={17} /><span>Enviar</span></button></form>
     <p className="luka-disclaimer">LUKA consulta y simula; no cambia tus datos financieros.</p>
   </section>;
