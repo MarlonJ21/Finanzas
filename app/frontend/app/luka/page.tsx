@@ -94,6 +94,7 @@ export default function LukaPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("");
   const [recording, setRecording] = useState(false);
   const [recorded, setRecorded] = useState<Blob | null>(null);
   const [seconds, setSeconds] = useState(0);
@@ -131,7 +132,7 @@ export default function LukaPage() {
   async function send(text = input, fromAudio = false) {
     const message = text.trim();
     if (!message || busy) return;
-    setBusy(true); setError(""); setInput("");
+    setBusy(true); setError(""); setInput(""); setVoiceStatus("");
     setMessages((items) => [...items, { role: "user", text: message, audio: fromAudio }]);
     try {
       const response = await fetch(`${getApiBase()}/luka/chat`, {
@@ -214,21 +215,31 @@ export default function LukaPage() {
     }
     setBusy(true);
     setError("");
+    setVoiceStatus("Transcribiendo audio…");
     const form = new FormData();
     const mimeType = recorded.type.split(";")[0];
     const extension = mimeType === "audio/mp4" ? "mp4" : mimeType === "audio/ogg" ? "ogg" : "webm";
     form.append("file", recorded, `voice.${extension}`);
     try {
-      const res = await fetch(`${getApiBase()}/luka/transcribe`, { method: "POST", body: form });
-      if (!res.ok) throw new Error("No pude transcribir el audio ahora. Intenta de nuevo.");
-      const data = await res.json();
-      if (!data.text?.trim()) throw new Error("No logré entender el audio. Intenta hablar más cerca del micrófono.");
+      let transcript = "";
+      try {
+        const res = await fetch(`${getApiBase()}/luka/transcribe`, { method: "POST", body: form });
+        if (res.ok) transcript = String((await res.json()).text || "").trim();
+      } catch { /* The local model can still transcribe if the service is unavailable. */ }
+      if (!transcript) {
+        setVoiceStatus("Preparando transcripción local. La primera vez puede tardar unos minutos…");
+        const { transcribeLocally } = await import("../../lib/localTranscription");
+        transcript = await transcribeLocally(recorded);
+      }
+      if (!transcript) throw new Error("No logré entender el audio. Intenta hablar más cerca del micrófono.");
       setRecorded(null);
       setBusy(false);
-      await send(data.text, true);
+      setVoiceStatus("");
+      await send(transcript, true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No pude procesar el audio.");
+      setError(e instanceof Error && e.message.startsWith("No logré") ? e.message : "No pude transcribir el audio. Revisa tu conexión e intenta de nuevo.");
       setBusy(false);
+      setVoiceStatus("");
     }
   }
 
@@ -268,7 +279,7 @@ export default function LukaPage() {
           </article>
         );
       })}
-      {busy ? <p className="luka-thinking">Luka está revisando tus números…</p> : null}
+      {busy ? <p className="luka-thinking">{voiceStatus || "Luka está revisando tus números…"}</p> : null}
     </div>
     {error ? <div className="alert-item red" role="alert">{error}</div> : null}
     {recording ? (

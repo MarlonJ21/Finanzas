@@ -8,6 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@tanstack/react-query": "^5.103.2",
     "lucide-react": "^0.555.0",
     "next": "^16.0.0",
@@ -21,5 +22,8 @@
     "@types/react-dom": "^19.0.0",
     "playwright": "^1.63.0",
     "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "sharp": "0.35.5"
   }
 }
