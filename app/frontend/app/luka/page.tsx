@@ -12,8 +12,79 @@ type Message = {
   fallback_used?: boolean;
   fallback_reason?: string | null;
   provider?: string;
+  model?: string | null;
 };
 const prompts = ["¿Cómo voy este mes?", "¿En qué he gastado más?", "¿Cuánto puedo gastar?", "¿Puedo comprar algo de $80?", "¿Cómo voy esta quincena?"];
+
+function formatModelTag(provider?: string, model?: string | null, fallback?: boolean) {
+  if (fallback || provider === "deterministic") {
+    return { name: "Modo Local", type: "local" };
+  }
+  if (provider === "deepseek") {
+    return { name: "DeepSeek V3", type: "deepseek" };
+  }
+  if (provider === "kimi") {
+    return { name: "Kimi", type: "kimi" };
+  }
+  if (provider === "gemini") {
+    return { name: "Gemini", type: "gemini" };
+  }
+  if (provider === "openrouter") {
+    const short = model ? model.split("/").pop()?.replace(/:free$/, "") : "AI";
+    return { name: `OpenRouter · ${short}`, type: "openrouter" };
+  }
+  if (provider === "groq") {
+    return { name: "Groq", type: "groq" };
+  }
+  return { name: provider ? provider.toUpperCase() : "IA", type: "ai" };
+}
+
+function formatInline(text: string) {
+  const parts = text.split(/(\*\*[^*]+?\*\*|`[^`]+?`|\*[^*]+?\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+      return <strong key={idx}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
+      return <code key={idx} className="luka-code">{part.slice(1, -1)}</code>;
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
+      return <em key={idx}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+function FormattedText({ content }: { content: string }) {
+  const paragraphs = content.split(/\n\n+/);
+  return (
+    <div className="luka-formatted-text">
+      {paragraphs.map((para, pIdx) => {
+        const lines = para.split("\n");
+        const isList = lines.length > 1 && lines.every((l) => /^\s*[-*•]\s+/.test(l));
+        if (isList) {
+          return (
+            <ul key={pIdx} className="luka-list">
+              {lines.map((line, lIdx) => (
+                <li key={lIdx}>{formatInline(line.replace(/^\s*[-*•]\s+/, ""))}</li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={pIdx}>
+            {lines.map((line, lIdx) => (
+              <span key={lIdx}>
+                {lIdx > 0 && <br />}
+                {formatInline(line)}
+              </span>
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function LukaPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -38,7 +109,8 @@ export default function LukaPage() {
   function speak(text: string) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    const clean = text.replace(/[*_`#]/g, "").trim();
+    const utterance = new SpeechSynthesisUtterance(clean);
     const voices = window.speechSynthesis.getVoices();
     utterance.voice = voices.find((v) => ["es-VE", "es-419", "es-US", "es-ES"].includes(v.lang)) ?? null;
     utterance.lang = utterance.voice?.lang ?? "es-419";
@@ -65,6 +137,7 @@ export default function LukaPage() {
         fallback_used: data.fallback_used,
         fallback_reason: data.fallback_reason,
         provider: data.provider,
+        model: data.model,
       }]);
       if (fromAudio && autoVoice) speak(data.message);
     } catch (e) { setError(e instanceof Error ? e.message : "No pude enviar tu mensaje."); }
@@ -111,23 +184,36 @@ export default function LukaPage() {
     <header className="luka-header"><span className="luka-avatar"><Bot size={23} /></span><div><p className="eyebrow">Asistente financiero personal</p><h1>LUKA</h1><p className="subtle">Pregúntame por tus gastos o simula una compra.</p></div><label className="luka-voice-toggle"><input type="checkbox" checked={autoVoice} onChange={(e) => { setAutoVoice(e.target.checked); localStorage.setItem("luka-auto-voice", String(e.target.checked)); }} /> Voz al enviar audio</label></header>
     <div className="luka-chat" aria-live="polite">
       {!messages.length ? <div className="luka-welcome"><span className="luka-avatar large"><Bot size={30} /></span><h2>¿En qué te ayudo?</h2><p>Reviso tus números reales y también podemos simular compras.</p><div className="luka-prompts">{prompts.map((q) => <button className="secondary-button" key={q} onClick={() => void send(q)}>{q}</button>)}</div></div> : null}
-      {messages.map((m, i) => (
-        <article className={`luka-message ${m.role}`} key={i}>
-          <div className="luka-bubble">
-            {m.audio ? <span className="luka-transcript">Tú · audio · transcripción</span> : null}
-            {m.role === "assistant" && m.fallback_used ? (
-              <div className="luka-mode-pill" title={m.fallback_reason || "Motor financiero local activo"}>
-                <span className="luka-mode-dot" />
-                <span>Modo local</span>
-                {m.fallback_reason ? <span className="luka-mode-reason">· {m.fallback_reason}</span> : null}
-              </div>
-            ) : null}
-            <p>{m.text}</p>
-            {m.role === "assistant" ? <button className="luka-play" onClick={() => speak(m.text)}><Volume2 size={15} /> Reproducir</button> : null}
-          </div>
-          {m.card ? <DataCard card={m.card} /> : null}
-        </article>
-      ))}
+      {messages.map((m, i) => {
+        const tag = m.role === "assistant" ? formatModelTag(m.provider, m.model, m.fallback_used) : null;
+        return (
+          <article className={`luka-message ${m.role}`} key={i}>
+            <div className="luka-bubble">
+              {m.audio ? <span className="luka-transcript">Tú · audio · transcripción</span> : null}
+              <FormattedText content={m.text} />
+              {m.role === "assistant" && tag ? (
+                <div className="luka-bubble-footer">
+                  <div
+                    className={`luka-model-tag ${tag.type}`}
+                    title={m.fallback_reason || `Motor: ${tag.name}`}
+                  >
+                    <span className={`luka-tag-dot ${tag.type}`} />
+                    <span>{tag.name}</span>
+                    {m.fallback_used && m.fallback_reason ? (
+                      <span className="luka-tag-hint">· {m.fallback_reason}</span>
+                    ) : null}
+                  </div>
+                  <button className="luka-play" onClick={() => speak(m.text)} title="Escuchar respuesta">
+                    <Volume2 size={13} />
+                    <span>Escuchar</span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            {m.card ? <DataCard card={m.card} /> : null}
+          </article>
+        );
+      })}
       {busy ? <p className="luka-thinking">Luka está revisando tus números…</p> : null}
     </div>
     {error ? <div className="alert-item red" role="alert">{error}</div> : null}
