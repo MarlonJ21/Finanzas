@@ -19,9 +19,16 @@ class SPAStaticFiles(StaticFiles):
         if response.status_code == 404:
             clean = path.strip("/")
             base = Path(self.directory)
+            # 1. Handle Next.js RSC segment dot-notation: e.g. route/__next.route.__PAGE__.txt
+            if ".__PAGE__" in clean:
+                rsc_file = base / clean.replace(".__PAGE__", "/__PAGE__")
+                if rsc_file.is_file():
+                    return FileResponse(rsc_file)
+            # 2. Check if clean.html exists
             html_file = base / f"{clean}.html"
             if html_file.is_file():
                 return FileResponse(html_file)
+            # 3. Check if clean/index.html exists
             index_file = base / clean / "index.html"
             if index_file.is_file():
                 return FileResponse(index_file)
