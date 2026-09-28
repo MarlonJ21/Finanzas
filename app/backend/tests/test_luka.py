@@ -81,11 +81,11 @@ def test_provider_failover_ends_in_deterministic_fallback(monkeypatch: pytest.Mo
     assert f"${luka.get_financial_summary()['monthly_spent']:.2f}" in result["message"]
 
 
-@pytest.mark.parametrize("failing_providers,expected", [(["groq"], "gemini"), (["groq", "gemini"], "openrouter")])
+@pytest.mark.parametrize("failing_providers,expected", [(["deepseek"], "gemini"), (["deepseek", "gemini"], "groq"), (["deepseek", "gemini", "groq"], "openrouter")])
 def test_provider_failover_uses_next_configured_provider(monkeypatch: pytest.MonkeyPatch, failing_providers: list[str], expected: str) -> None:
-    for key in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
+    for key in ("DEEPSEEK_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY", "OPENROUTER_API_KEY"):
         monkeypatch.setenv(key, "test-key")
-    monkeypatch.setenv("LUKA_PROVIDER_ORDER", "groq,gemini,openrouter")
+    monkeypatch.setenv("LUKA_PROVIDER_ORDER", "deepseek,gemini,groq,openrouter")
     seen: list[str] = []
 
     def respond(provider: str, *_: object) -> luka.ProviderResult:
@@ -102,7 +102,7 @@ def test_provider_failover_uses_next_configured_provider(monkeypatch: pytest.Mon
 
 
 def test_chat_without_keys_uses_deterministic_tool(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
+    for name in ("DEEPSEEK_API_KEY", "KIMI_API_KEY", "MOONSHOT_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
         monkeypatch.delenv(name, raising=False)
     response = client.post("/api/luka/chat", json={"message": "¿En qué he gastado más?"})
     assert response.status_code == 200
@@ -131,7 +131,7 @@ def test_transcription_rejects_oversized_audio(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_transcription_unavailable_keeps_text_chat_available(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
+    for name in ("DEEPSEEK_API_KEY", "KIMI_API_KEY", "MOONSHOT_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
         monkeypatch.delenv(name, raising=False)
     response = client.post("/api/luka/transcribe", files={"file": ("voice.webm", b"audio", "audio/webm")})
     assert response.status_code == 503

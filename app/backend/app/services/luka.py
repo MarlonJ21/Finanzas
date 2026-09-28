@@ -26,18 +26,34 @@ def enabled() -> bool:
 
 
 def provider_order() -> list[str]:
-    allowed = {"groq", "gemini", "openrouter"}
-    order = [x.strip().lower() for x in os.getenv("LUKA_PROVIDER_ORDER", "groq,gemini,openrouter").split(",")]
+    allowed = {"deepseek", "kimi", "groq", "gemini", "openrouter"}
+    order = [x.strip().lower() for x in os.getenv("LUKA_PROVIDER_ORDER", "deepseek,kimi,gemini,groq,openrouter").split(",")]
     return [x for x in order if x in allowed and provider_key(x)]
 
 
 def provider_key(name: str) -> str:
-    return os.getenv({"groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY", "openrouter": "OPENROUTER_API_KEY"}[name], "")
+    mapping = {
+        "deepseek": "DEEPSEEK_API_KEY",
+        "kimi": "KIMI_API_KEY",
+        "groq": "GROQ_API_KEY",
+        "gemini": "GEMINI_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+    }
+    key = os.getenv(mapping.get(name, ""))
+    if name == "kimi" and not key:
+        key = os.getenv("MOONSHOT_API_KEY", "")
+    return key or ""
 
 
 def model_for(name: str) -> str:
-    defaults = {"groq": "llama-3.3-70b-versatile", "gemini": "gemini-3.8-flash", "openrouter": "openai/gpt-4o-mini"}
-    return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults[name])
+    defaults = {
+        "deepseek": "deepseek-chat",
+        "kimi": "moonshot-v1-8k",
+        "groq": "llama-3.3-70b-versatile",
+        "gemini": "gemini-3.8-flash",
+        "openrouter": "openai/gpt-4o-mini",
+    }
+    return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults.get(name, ""))
 
 
 def status() -> dict[str, Any]:
@@ -345,6 +361,12 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
         base = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
         custom = os.getenv("LUKA_GEMINI_MODEL")
         models_to_try = [custom] if custom else ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+    elif name == "deepseek":
+        base = "https://api.deepseek.com/chat/completions"
+        models_to_try = [model_for("deepseek")]
+    elif name == "kimi":
+        base = "https://api.moonshot.cn/v1/chat/completions"
+        models_to_try = [model_for("kimi")]
     else:
         base = "https://openrouter.ai/api/v1/chat/completions"
         models_to_try = [model_for("openrouter")]
