@@ -33,6 +33,10 @@ function formatModelTag(provider?: string, model?: string | null, fallback?: boo
     const short = model ? model.split("/").pop()?.replace(/:free$/, "") : "AI";
     return { name: `OpenRouter · ${short}`, type: "openrouter" };
   }
+  if (provider === "nvidia") {
+    const short = model ? model.split("/").pop() : "Llama 3.2";
+    return { name: `NVIDIA · ${short}`, type: "nvidia" };
+  }
   if (provider === "groq") {
     return { name: "Groq", type: "groq" };
   }

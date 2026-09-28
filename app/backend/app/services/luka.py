@@ -26,8 +26,8 @@ def enabled() -> bool:
 
 
 def provider_order() -> list[str]:
-    allowed = {"deepseek", "kimi", "gemini", "openrouter", "groq"}
-    order = [x.strip().lower() for x in os.getenv("LUKA_PROVIDER_ORDER", "deepseek,kimi,gemini,openrouter").split(",")]
+    allowed = {"deepseek", "kimi", "gemini", "openrouter", "groq", "nvidia"}
+    order = [x.strip().lower() for x in os.getenv("LUKA_PROVIDER_ORDER", "openrouter,nvidia,deepseek,kimi").split(",")]
     return [x for x in order if x in allowed and provider_key(x)]
 
 
@@ -38,6 +38,7 @@ def provider_key(name: str) -> str:
         "gemini": "GEMINI_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
         "groq": "GROQ_API_KEY",
+        "nvidia": "NVIDIA_API_KEY",
     }
     key = os.getenv(mapping.get(name, ""))
     if name == "kimi" and not key:
@@ -52,6 +53,7 @@ def model_for(name: str) -> str:
         "gemini": "gemini-3.8-flash",
         "openrouter": "openai/gpt-4o-mini",
         "groq": "llama-3.3-70b-versatile",
+        "nvidia": "meta/llama-3.2-11b-vision-instruct",
     }
     return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults.get(name, ""))
 
@@ -361,6 +363,9 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
         base = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
         custom = os.getenv("LUKA_GEMINI_MODEL")
         models_to_try = [custom] if custom else ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+    elif name == "nvidia":
+        base = "https://integrate.api.nvidia.com/v1/chat/completions"
+        models_to_try = [model_for("nvidia")]
     elif name == "deepseek":
         base = "https://api.deepseek.com/chat/completions"
         models_to_try = [model_for("deepseek")]
