@@ -534,6 +534,7 @@ def search_transactions(
     category: str | None = None,
     subcategory: str | None = None,
     domain: str | None = None,
+    transaction_type: str | None = None,
     min_amount: float | None = None,
     max_amount: float | None = None,
     date_from: str | None = None,
@@ -541,8 +542,16 @@ def search_transactions(
     month: str | None = None,
     limit: int = 10
 ) -> dict[str, Any]:
-    filters = ["EsEgresoEconomico=1"]
+    filters = []
     params: list[Any] = []
+
+    t_type = (transaction_type or "").strip().lower()
+    if t_type in {"income", "ingreso", "ingresos", "sale", "sales", "venta", "ventas"}:
+        filters.append("EsIngresoEconomico=1")
+    elif t_type in {"all", "todos", "todo"}:
+        pass
+    else:
+        filters.append("EsEgresoEconomico=1")
 
     if domain and domain.strip():
         filters.append("lower(Dominio) = lower(?)")
@@ -710,6 +719,110 @@ def get_daily_spending(target_date: str | None = None) -> dict[str, Any]:
     }
 
 
+def get_sales_and_income(
+    business_or_category: str | None = None,
+    month: str | None = None,
+    target_date: str | None = None
+) -> dict[str, Any]:
+    clean_cat = (business_or_category or "").strip()
+    ym = _month(month) if not target_date else None
+
+    filters_period = ["EsIngresoEconomico=1"]
+    params_period: list[Any] = []
+
+    filters_all = ["EsIngresoEconomico=1"]
+    params_all: list[Any] = []
+
+    if target_date and target_date.strip():
+        td = target_date.strip()
+        filters_period.append("Fecha = ?")
+        params_period.append(td)
+    elif ym:
+        filters_period.append("Fecha LIKE ?")
+        params_period.append(f"{ym}%")
+
+    if clean_cat:
+        norm_cat = _norm_str(clean_cat)
+        cond = "(lower(Categoria)=lower(?) OR REPLACE(lower(Categoria), ' ', '')=? OR lower(Dominio)=lower(?))"
+        filters_period.append(cond)
+        params_period.extend([clean_cat, norm_cat, clean_cat])
+        filters_all.append(cond)
+        params_all.extend([clean_cat, norm_cat, clean_cat])
+    else:
+        cond = "(Dominio='NEGOCIO' OR lower(Categoria) LIKE '%premiados%')"
+        filters_period.append(cond)
+        filters_all.append(cond)
+
+    rows_period = query_all(f"""
+        SELECT Fecha AS date, Hora AS time, Dominio AS domain, Categoria AS category,
+               Subcategoria AS subcategory, DescripcionOriginal AS description, MontoUSD AS amount_usd, Cuenta AS account
+        FROM movimientos
+        WHERE {' AND '.join(filters_period)}
+        ORDER BY Fecha DESC, Hora DESC
+    """, params_period)
+
+    row_period_agg = query_all(f"""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE {' AND '.join(filters_period)}
+    """, params_period)[0]
+
+    row_all_agg = query_all(f"""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE {' AND '.join(filters_all)}
+    """, params_all)[0]
+
+    exp_filter_period = [f.replace("EsIngresoEconomico=1", "EsEgresoEconomico=1") for f in filters_period]
+    exp_filter_all = [f.replace("EsIngresoEconomico=1", "EsEgresoEconomico=1") for f in filters_all]
+
+    exp_period_agg = query_all(f"""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE {' AND '.join(exp_filter_period)}
+    """, params_period)[0]
+
+    exp_all_agg = query_all(f"""
+        SELECT SUM(MontoUSD) AS amount_usd, COUNT(*) AS count
+        FROM movimientos
+        WHERE {' AND '.join(exp_filter_all)}
+    """, params_all)[0]
+
+    period_sales = as_float(row_period_agg["amount_usd"])
+    period_count = int(row_period_agg["count"] or 0)
+    all_sales = as_float(row_all_agg["amount_usd"])
+    all_count = int(row_all_agg["count"] or 0)
+
+    period_exp = as_float(exp_period_agg["amount_usd"])
+    all_exp = as_float(exp_all_agg["amount_usd"])
+
+    items = [{
+        "date": r["date"],
+        "time": r["time"],
+        "description": r["description"],
+        "category": r["category"],
+        "subcategory": r["subcategory"],
+        "amount_usd": as_float(r["amount_usd"]),
+        "account": r["account"]
+    } for r in rows_period]
+
+    return {
+        "business": clean_cat or "PremiadosVE",
+        "business_or_category": clean_cat or "PremiadosVE",
+        "period": target_date if target_date else (ym or "all"),
+        "period_sales_usd": period_sales,
+        "period_sales_count": period_count,
+        "all_time_sales_usd": all_sales,
+        "all_time_sales_count": all_count,
+        "period_expenses_usd": period_exp,
+        "all_time_expenses_usd": all_exp,
+        "period_net_profit_usd": as_float(period_sales - period_exp),
+        "all_time_net_profit_usd": as_float(all_sales - all_exp),
+        "recent_sales": items[:10],
+        "total_sales_returned": len(items)
+    }
+
+
 def get_planner_summary() -> dict[str, Any]:
     return planner_summary(scenario="REALISTIC")
 
@@ -792,7 +905,7 @@ TOOLS: dict[str, Any] = {"get_financial_summary": get_financial_summary, "get_bu
     "simulate_cashea_purchase": simulate_cashea_purchase, "simulate_budget_change": simulate_budget_change,
     "get_peak_spending_days": get_peak_spending_days, "get_weekly_spending": get_weekly_spending,
     "find_budget_breach_transaction": find_budget_breach_transaction, "search_transactions": search_transactions,
-    "get_daily_spending": get_daily_spending}
+    "get_daily_spending": get_daily_spending, "get_sales_and_income": get_sales_and_income}
 
 
 def _deterministic(message: str) -> tuple[str, dict[str, Any] | None, str | None]:
@@ -885,6 +998,21 @@ def _deterministic(message: str) -> tuple[str, dict[str, Any] | None, str | None
             first = card["items"][0]
             return f"Este mes llevas más gasto en {first['label']}: ${first['amount_usd']:.2f}.", card, "get_top_spending"
         return "No encuentro gastos presupuestables para este mes.", card, "get_top_spending"
+    if re.search(r"(?:ventas?|vend[ií]|vendido|ingresos?\s+(?:del?\s+)?negocio|ingresos?\s+de\s+premiados)", text):
+        card = get_sales_and_income("PremiadosVE")
+        is_total = bool(re.search(r"total|hist[oó]rico|todo|siempre", text))
+        lines = []
+        if is_total:
+            lines.append(f"En tu negocio PremiadosVE llevas un total histórico en ventas de ${card['all_time_sales_usd']:.2f} ({card['all_time_sales_count']} ventas registradas), de las cuales ${card['period_sales_usd']:.2f} ({card['period_sales_count']} ventas) corresponden a este mes ({card['period']}).")
+        else:
+            lines.append(f"En este mes ({card['period']}) llevas ${card['period_sales_usd']:.2f} en ventas de PremiadosVE ({card['period_sales_count']} ventas). En total histórico acumulas ${card['all_time_sales_usd']:.2f} ({card['all_time_sales_count']} ventas).")
+
+        lines.append(f"Balance del negocio: Con ${card['period_expenses_usd']:.2f} en gastos este mes, tu ganancia neta del mes es +${card['period_net_profit_usd']:.2f} (y +${card['all_time_net_profit_usd']:.2f} en total histórico).")
+
+        if card["recent_sales"]:
+            lines.append("Últimas ventas registradas:\n" + "\n".join(f"• {s['date']}: ${s['amount_usd']:.2f} - {s['description']}" for s in card["recent_sales"][:5]))
+
+        return "\n\n".join(lines), card, "get_sales_and_income"
     if re.search(r"premiados(?:\s*ve)?", text):
         card = get_spending_by_category("PremiadosVE")
         is_total = bool(re.search(r"total|hist[oó]rico|todo|siempre", text))
@@ -970,8 +1098,9 @@ for _tool_name, _tool_description, _properties, _required in [
     ("get_peak_spending_days", "Obtiene los días con mayor gasto del mes o período, con detalle del monto total y mayor transacción", {"month": {"type": "string"}, "limit": {"type": "integer"}}, []),
     ("get_weekly_spending", "Desglose de gastos semana por semana del mes (1-7, 8-14, 15-21, 22-28, 29-31) identificando la semana pico de gasto", {"month": {"type": "string"}}, []),
     ("find_budget_breach_transaction", "Identifica el movimiento o transacción exacta en orden cronológico que causó que una categoría superara su presupuesto", {"category": {"type": "string"}, "month": {"type": "string"}}, ["category"]),
-    ("search_transactions", "Busca y filtra movimientos por texto/comercio/negocio, categoría, subcategoría, dominio ('PERSONAL' o 'NEGOCIO'), rango de fechas o montos mínimo/máximo", {"query": {"type": "string"}, "category": {"type": "string"}, "subcategory": {"type": "string"}, "domain": {"type": "string"}, "min_amount": {"type": "number"}, "max_amount": {"type": "number"}, "date_from": {"type": "string"}, "date_to": {"type": "string"}, "month": {"type": "string"}, "limit": {"type": "integer"}}, []),
+    ("search_transactions", "Busca y filtra movimientos por texto/comercio/negocio, tipo de transacción ('expense', 'income', 'all'), categoría, subcategoría, dominio ('PERSONAL' o 'NEGOCIO'), rango de fechas o montos mínimo/máximo", {"query": {"type": "string"}, "category": {"type": "string"}, "subcategory": {"type": "string"}, "domain": {"type": "string"}, "transaction_type": {"type": "string", "enum": ["expense", "income", "all"]}, "min_amount": {"type": "number"}, "max_amount": {"type": "number"}, "date_from": {"type": "string"}, "date_to": {"type": "string"}, "month": {"type": "string"}, "limit": {"type": "integer"}}, []),
     ("get_daily_spending", "Obtiene el gasto total y desglose de movimientos (personales y de negocio) para una fecha específica o el día de hoy", {"target_date": {"type": "string"}}, []),
+    ("get_sales_and_income", "Obtiene el reporte detallado de ventas e ingresos del negocio PremiadosVE o en general (ventas del mes, total histórico, balance de ganancia neta y últimas ventas)", {"business_or_category": {"type": "string"}, "month": {"type": "string"}, "target_date": {"type": "string"}}, []),
 ]:
     TOOL_SCHEMAS.append({"type": "function", "function": {"name": _tool_name, "description": _tool_description,
         "parameters": {"type": "object", "properties": _properties, "required": _required, "additionalProperties": False}}})
@@ -1066,6 +1195,8 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
               f"Fecha actual de corte: {cut_date}. Mes activo de análisis: {current_month}. "
               f"El backend calcula todos los valores. Usa sólo las Finance Tools permitidas para datos. "
               f"El usuario maneja finanzas personales y su negocio 'PremiadosVE' (dominio NEGOCIO). "
+              f"Tienes acceso completo a TODOS los datos financieros registrados en RIAL: gastos personales, gastos del negocio y VENTAS/INGRESOS del negocio PremiadosVE. NUNCA digas que no tienes acceso a datos de ventas o ingresos. "
+              f"Para consultar ventas o ingresos de PremiadosVE o del negocio, invoca get_sales_and_income o search_transactions(transaction_type='income'). "
               f"Para gastos del día de hoy o una fecha puntual, invoca get_daily_spending. "
               f"Para consultar gastos de una categoría, comercio o del negocio (como PremiadosVE), invoca get_spending_by_category o get_spending_by_merchant_or_description (ambas retornan el gasto del mes y el total histórico). "
               f"Para análisis profundos (día con mayor gasto, desglose por semana, en qué movimiento se superó un presupuesto o buscar compras específicas), invoca get_daily_spending, get_peak_spending_days, get_weekly_spending, find_budget_breach_transaction o search_transactions. "

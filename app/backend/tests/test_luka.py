@@ -313,3 +313,39 @@ def test_premiadosve_spending(monkeypatch: pytest.MonkeyPatch) -> None:
     assert cat_data["all_time_income_usd"] == 570.48
 
 
+def test_get_sales_and_income() -> None:
+    sales = luka.get_sales_and_income("PremiadosVE")
+    assert sales["business_or_category"] == "PremiadosVE"
+    assert sales["period_sales_usd"] == 162.77
+    assert sales["period_sales_count"] == 5
+    assert sales["all_time_sales_usd"] == 570.48
+    assert sales["all_time_sales_count"] == 16
+    assert sales["period_expenses_usd"] == 53.73
+    assert sales["period_net_profit_usd"] == 109.04
+    assert sales["all_time_net_profit_usd"] == 370.61
+    assert len(sales["recent_sales"]) > 0
+
+    # Test search_transactions with transaction_type="income"
+    income_tx = luka.search_transactions(query="PremiadosVE", transaction_type="income", limit=10)
+    assert income_tx["count"] > 0
+    assert all(item["amount_usd"] > 0 for item in income_tx["items"])
+
+
+def test_sales_and_income_deterministic(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("DEEPSEEK_API_KEY", "KIMI_API_KEY", "MOONSHOT_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY", "NVIDIA_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+    ans_month = luka.answer("¿Cuáles fueron mis ventas?")
+    assert ans_month["provider"] == "deterministic"
+    assert "get_sales_and_income" in ans_month["tool_calls"]
+    assert "$162.77" in ans_month["message"]
+    assert "$570.48" in ans_month["message"]
+    assert "+$109.04" in ans_month["message"]
+
+    ans_total = luka.answer("¿Cuánto he vendido en total de PremiadosVE?")
+    assert ans_total["provider"] == "deterministic"
+    assert "get_sales_and_income" in ans_total["tool_calls"]
+    assert "$570.48" in ans_total["message"]
+
+
+
