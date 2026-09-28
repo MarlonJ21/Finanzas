@@ -43,6 +43,17 @@ def luka_chat(payload: ChatPayload) -> dict:
         result = luka_service.answer(payload.message, payload.page_context.model_dump(exclude_none=True) if payload.page_context else None, [item.model_dump() for item in payload.history])
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        luka_service.log.exception("luka_chat unexpected error: %s", exc)
+        text, card, tool = luka_service._deterministic(payload.message)
+        result = {
+            "message": text,
+            "structured_cards": card,
+            "provider": "deterministic",
+            "model": None,
+            "tool_calls": [tool] if tool else [],
+            "fallback_used": True,
+        }
     result["conversation_id"] = payload.conversation_id or str(uuid.uuid4())
     result["response_mode"] = payload.response_mode
     result["voice_requested"] = payload.response_mode == "audio"
