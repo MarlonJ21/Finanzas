@@ -366,7 +366,19 @@ def _gemini_call(messages: list[dict[str, Any]], use_tools: bool = False) -> dic
             contents.append({"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]})
     body: dict[str, Any] = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents, "generationConfig": {"temperature": .2}}
     if use_tools:
-        body["tools"] = [{"functionDeclarations": [{"name": x["function"]["name"], "description": x["function"]["description"], "parameters": x["function"]["parameters"]} for x in TOOL_SCHEMAS]}]
+        decls = []
+        for x in TOOL_SCHEMAS:
+            fn = x["function"]
+            decl: dict[str, Any] = {"name": fn["name"], "description": fn["description"]}
+            params = fn.get("parameters", {})
+            props = params.get("properties", {})
+            if props:
+                cleaned_props = {pk: {k: v for k, v in pv.items() if k != "additionalProperties"} for pk, pv in props.items()}
+                decl["parameters"] = {"type": "OBJECT", "properties": cleaned_props}
+                if params.get("required"):
+                    decl["parameters"]["required"] = params["required"]
+            decls.append(decl)
+        body["tools"] = [{"functionDeclarations": decls}]
     response = httpx.post(url, params={"key": provider_key("gemini")}, json=body, timeout=20)
     response.raise_for_status()
     data = response.json()
@@ -424,13 +436,9 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
             log.info("luka provider=%s model=%s latency_ms=%s fallback_count=%s success=true tool_count=%s", name, model_for(name), latency, index, len(result.tool_names))
             return {"message": result.text, "structured_cards": result.card, "provider": name, "model": model_for(name), "tool_calls": result.tool_names, "fallback_used": False}
         except (httpx.TimeoutException, httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as exc:
-            if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code != 429 and exc.response.status_code < 500:
-                raise
             last_error = type(exc).__name__
             latency = round((time.monotonic()-started)*1000)
             log.warning("luka provider=%s model=%s latency_ms=%s fallback_count=%s error=%s", name, model_for(name), latency, index, last_error)
-            if isinstance(exc, ValueError) and not isinstance(exc, httpx.HTTPStatusError):
-                raise
     # The deterministic router always computes values locally without exposing them to a model.
     text, card, tool = _deterministic(message)
     return {"message": ("Estoy en modo básico porque los modelos de lenguaje no están disponibles ahora mismo, pero todavía puedo consultar y simular tus finanzas. " if order else "") + text,
