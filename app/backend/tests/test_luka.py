@@ -97,8 +97,9 @@ def test_openrouter_model_cascade_preserves_primary_and_returns_actual_model(mon
     assert captured[0]["model"] == "openai/gpt-4o-mini"
     assert captured[0]["models"] == [
         "meta-llama/llama-3.3-70b-instruct:free", "qwen/qwen3.8-27b:free",
-        "mistralai/mistral-small-3.2-24b-instruct:free", "openrouter/free",
+        "mistralai/mistral-small-3.2-24b-instruct:free",
     ]
+    assert len(captured[0]["models"]) <= 3
 
 
 def test_nvidia_model_cascade_moves_on_429_and_404(monkeypatch: pytest.MonkeyPatch) -> None:

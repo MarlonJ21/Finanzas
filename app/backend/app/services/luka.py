@@ -25,7 +25,6 @@ MODEL_CASCADES = {
         "meta-llama/llama-3.3-70b-instruct:free",
         "qwen/qwen3.8-27b:free",
         "mistralai/mistral-small-3.2-24b-instruct:free",
-        "openrouter/free",
     ),
     "nvidia": (
         "meta/llama-3.2-11b-vision-instruct",
@@ -419,7 +418,9 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
 
     last_resp = None
     last_error: Exception | None = None
-    deadline = time.monotonic() + 30
+    # NVIDIA hosted models can take longer to start than OpenRouter. Reserve enough
+    # time for the complete model list, while keeping each attempt bounded.
+    deadline = time.monotonic() + 90
     for model_name in models_to_try:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -429,7 +430,7 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
             payload["parallel_tool_calls"] = False
         if tools: payload.update({"tools": tools, "tool_choice": "auto"})
         try:
-            response = httpx.post(base, headers=headers, json=payload, timeout=min(10, remaining))
+            response = httpx.post(base, headers=headers, json=payload, timeout=min(25, remaining))
         except (httpx.TimeoutException, httpx.RequestError) as exc:
             last_error = exc
             if model_name != models_to_try[-1] and time.monotonic() < deadline:
