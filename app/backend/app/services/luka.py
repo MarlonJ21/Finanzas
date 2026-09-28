@@ -347,7 +347,8 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
     headers = {"Authorization": f"Bearer {provider_key(name)}", "Content-Type": "application/json"}
     if name == "openrouter": headers["HTTP-Referer"] = os.getenv("OPENROUTER_SITE_URL", "https://localhost")
     payload: dict[str, Any] = {"model": model_for(name), "messages": messages, "temperature": 0.2}
-    payload["parallel_tool_calls"] = False
+    if name != "gemini":
+        payload["parallel_tool_calls"] = False
     if tools: payload.update({"tools": tools, "tool_choice": "auto"})
     response = httpx.post(base, headers=headers, json=payload, timeout=20)
     response.raise_for_status()
@@ -402,7 +403,10 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
             log.info("luka provider=%s model=%s latency_ms=%s fallback_count=%s success=true tool_count=%s", name, model_for(name), latency, index, len(result.tool_names))
             return {"message": result.text, "structured_cards": result.card, "provider": name, "model": model_for(name), "tool_calls": result.tool_names, "fallback_used": False}
         except (httpx.TimeoutException, httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as exc:
-            last_error = type(exc).__name__
+            if isinstance(exc, httpx.HTTPStatusError):
+                last_error = f"{exc.response.status_code}: {exc.response.text[:250]}"
+            else:
+                last_error = str(exc)
             latency = round((time.monotonic()-started)*1000)
             log.warning("luka provider=%s model=%s latency_ms=%s fallback_count=%s error=%s", name, model_for(name), latency, index, last_error)
     # The deterministic router always computes values locally without exposing them to a model.
