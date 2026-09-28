@@ -10,20 +10,21 @@ The tool registry includes financial summary, budget and biweekly status, Safe t
 
 ## Providers and configuration
 
-Groq and OpenRouter use their OpenAI compatible chat endpoints; Gemini uses `generateContent` and function declarations. Providers are tried in `LUKA_PROVIDER_ORDER`. Timeout, rate limit, network, and server errors fail over. Client errors indicate a request problem and are returned as a controlled error. Model and provider details are logged with timing and tool count, without prompts or result payloads.
+Providers are tried in `LUKA_PROVIDER_ORDER`. OpenRouter sends the configured model first and uses its server-side model fallback list; NVIDIA NIM retries its model list on timeout, network failure, 404, 429, and 5xx responses before advancing to the next provider. The OpenRouter and NVIDIA primaries retain the existing `LUKA_OPENROUTER_MODEL` and `LUKA_NVIDIA_MODEL` overrides. Optional `LUKA_OPENROUTER_MODELS` and `LUKA_NVIDIA_MODELS` values replace the respective fallback lists (comma-separated); otherwise the built-in lists are used. The actual responding model is returned to the chat UI and logs. Model lists are limited to endpoints documented as supporting tool calling.
+
+The default OpenRouter sequence is GPT-4o mini, Llama 3.3 70B, Qwen3.8 27B, Mistral Small 3.2, then OpenRouter's tool-aware free-model router. NVIDIA starts with the currently deployed Llama 3.2 11B and falls through Muse Glimmer 30B and GLM 5.3/5.3 Flash. Older NVIDIA entries that are deprecated or lack function calling are not included in the tool-call cascade.
 
 Set these environment variables in the backend environment (Render for hosted deployment):
 
 ```text
 LUKA_ENABLED=true
-LUKA_PROVIDER_ORDER=groq,gemini,openrouter
-GROQ_API_KEY=
-GEMINI_API_KEY=
+LUKA_PROVIDER_ORDER=openrouter,nvidia,deepseek,kimi
 OPENROUTER_API_KEY=
-LUKA_GROQ_MODEL=llama-3.3-70b-versatile
-LUKA_GEMINI_MODEL=gemini-2.0-flash
+NVIDIA_API_KEY=
+DEEPSEEK_API_KEY=
+KIMI_API_KEY=
 LUKA_OPENROUTER_MODEL=openai/gpt-4o-mini
-LUKA_STT_MODEL=whisper-large-v3-turbo
+LUKA_NVIDIA_MODEL=meta/llama-3.2-11b-vision-instruct
 ```
 
 Only configured providers with a key are reported as available. No provider key is exposed to the browser. Keep secrets in Render's backend environment settings. If no LLM key is configured, deterministic supported queries remain available.

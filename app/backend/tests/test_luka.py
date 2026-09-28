@@ -81,6 +81,44 @@ def test_provider_failover_ends_in_deterministic_fallback(monkeypatch: pytest.Mo
     assert f"${luka.get_financial_summary()['monthly_spent']:.2f}" in result["message"]
 
 
+def test_openrouter_model_cascade_preserves_primary_and_returns_actual_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("LUKA_OPENROUTER_MODEL", raising=False)
+    monkeypatch.delenv("LUKA_OPENROUTER_MODELS", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    captured: list[dict] = []
+
+    def post(_url: str, **kwargs: object) -> __import__("httpx").Response:
+        captured.append(kwargs["json"])
+        return __import__("httpx").Response(200, json={"model": "qwen/qwen3.8-27b:free", "choices": []}, request=__import__("httpx").Request("POST", _url))
+
+    monkeypatch.setattr(luka.httpx, "post", post)
+    result = luka._openai_call("openrouter", [{"role": "user", "content": "hi"}], [])
+    assert result["model"] == "qwen/qwen3.8-27b:free"
+    assert captured[0]["model"] == "openai/gpt-4o-mini"
+    assert captured[0]["models"] == [
+        "meta-llama/llama-3.3-70b-instruct:free", "qwen/qwen3.8-27b:free",
+        "mistralai/mistral-small-3.2-24b-instruct:free", "openrouter/free",
+    ]
+
+
+def test_nvidia_model_cascade_moves_on_429_and_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("LUKA_NVIDIA_MODEL", raising=False)
+    monkeypatch.delenv("LUKA_NVIDIA_MODELS", raising=False)
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
+    attempts: list[str] = []
+
+    def post(_url: str, **kwargs: object) -> __import__("httpx").Response:
+        model = kwargs["json"]["model"]
+        attempts.append(model)
+        status = 429 if len(attempts) == 1 else 404 if len(attempts) == 2 else 200
+        return __import__("httpx").Response(status, json={"model": model, "choices": []}, request=__import__("httpx").Request("POST", _url))
+
+    monkeypatch.setattr(luka.httpx, "post", post)
+    result = luka._openai_call("nvidia", [{"role": "user", "content": "hi"}], [])
+    assert attempts == ["meta/llama-3.2-11b-vision-instruct", "meta/muse-glimmer-30b", "z-ai/glm-5.3"]
+    assert result["model"] == "z-ai/glm-5.3"
+
+
 @pytest.mark.parametrize("failing_providers,expected", [(["deepseek"], "gemini"), (["deepseek", "gemini"], "groq"), (["deepseek", "gemini", "groq"], "openrouter")])
 def test_provider_failover_uses_next_configured_provider(monkeypatch: pytest.MonkeyPatch, failing_providers: list[str], expected: str) -> None:
     for key in ("DEEPSEEK_API_KEY", "GEMINI_API_KEY", "GROQ_API_KEY", "OPENROUTER_API_KEY"):

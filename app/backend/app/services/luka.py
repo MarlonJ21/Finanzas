@@ -19,6 +19,21 @@ from app.services.metrics import as_float, latest_context
 log = logging.getLogger("luka")
 MAX_TOOL_CALLS = 3
 MAX_MESSAGE_CHARS = 4000
+MODEL_CASCADES = {
+    "openrouter": (
+        "openai/gpt-4o-mini",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "qwen/qwen3.8-27b:free",
+        "mistralai/mistral-small-3.2-24b-instruct:free",
+        "openrouter/free",
+    ),
+    "nvidia": (
+        "meta/llama-3.2-11b-vision-instruct",
+        "meta/muse-glimmer-30b",
+        "z-ai/glm-5.3",
+        "z-ai/glm-5.3-flash",
+    ),
+}
 
 
 def enabled() -> bool:
@@ -56,6 +71,16 @@ def model_for(name: str) -> str:
         "nvidia": "meta/llama-3.2-11b-vision-instruct",
     }
     return os.getenv(f"LUKA_{name.upper()}_MODEL", defaults.get(name, ""))
+
+
+def model_cascade(name: str) -> list[str]:
+    """Return a provider's primary model and fallbacks, preserving an existing Render override."""
+    defaults = list(MODEL_CASCADES.get(name, (model_for(name),)))
+    configured = os.getenv(f"LUKA_{name.upper()}_MODELS")
+    candidates = [value.strip() for value in configured.split(",") if value.strip()] if configured else defaults
+    primary = model_for(name)
+    ordered = [primary, *candidates] if primary else candidates
+    return list(dict.fromkeys(model for model in ordered if model))
 
 
 def status() -> dict[str, Any]:
@@ -353,6 +378,7 @@ class ProviderResult:
     text: str
     card: dict[str, Any] | None
     tool_names: list[str]
+    model: str | None = None
 
 
 def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
@@ -365,7 +391,7 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
         models_to_try = [custom] if custom else ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
     elif name == "nvidia":
         base = "https://integrate.api.nvidia.com/v1/chat/completions"
-        models_to_try = [model_for("nvidia")]
+        models_to_try = model_cascade("nvidia")
     elif name == "deepseek":
         base = "https://api.deepseek.com/chat/completions"
         models_to_try = [model_for("deepseek")]
@@ -374,24 +400,55 @@ def _openai_call(name: str, messages: list[dict[str, Any]], tools: list[dict[str
         models_to_try = [model_for("kimi")]
     else:
         base = "https://openrouter.ai/api/v1/chat/completions"
-        models_to_try = [model_for("openrouter")]
+        models_to_try = model_cascade("openrouter")
     headers = {"Authorization": f"Bearer {provider_key(name)}", "Content-Type": "application/json"}
     if name == "openrouter": headers["HTTP-Referer"] = os.getenv("OPENROUTER_SITE_URL", "https://localhost")
+    # OpenRouter handles model failover server-side and includes the model that answered.
+    # One request avoids serial retries and their latency.
+    if name == "openrouter":
+        primary, *fallbacks = models_to_try
+        payload: dict[str, Any] = {"model": primary, "messages": messages, "temperature": 0.2,
+                                   "parallel_tool_calls": False}
+        if fallbacks:
+            payload["models"] = fallbacks
+        if tools:
+            payload.update({"tools": tools, "tool_choice": "auto"})
+        response = httpx.post(base, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        return response.json()
+
     last_resp = None
+    last_error: Exception | None = None
+    deadline = time.monotonic() + 30
     for model_name in models_to_try:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
         payload: dict[str, Any] = {"model": model_name, "messages": messages, "temperature": 0.2}
         if name != "gemini":
             payload["parallel_tool_calls"] = False
         if tools: payload.update({"tools": tools, "tool_choice": "auto"})
-        response = httpx.post(base, headers=headers, json=payload, timeout=20)
-        if response.status_code in {404, 429, 500, 502, 503} and len(models_to_try) > 1:
+        try:
+            response = httpx.post(base, headers=headers, json=payload, timeout=min(10, remaining))
+        except (httpx.TimeoutException, httpx.RequestError) as exc:
+            last_error = exc
+            if model_name != models_to_try[-1] and time.monotonic() < deadline:
+                log.warning("luka provider=%s model=%s error=%s, trying next model", name, model_name, type(exc).__name__)
+                continue
+            raise
+        if response.status_code in {404, 429, 500, 502, 503, 504} and len(models_to_try) > 1:
             last_resp = response
             log.warning("luka provider=%s model=%s status=%s, trying next model", name, model_name, response.status_code)
             continue
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        if not data.get("model"):
+            data["model"] = model_name
+        return data
     if last_resp is not None:
         last_resp.raise_for_status()
+    if last_error is not None:
+        raise last_error
     raise RuntimeError("No model succeeded")
 
 
@@ -410,14 +467,16 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
     messages.append({"role": "user", "content": message})
     names: list[str] = []
     card = None
+    actual_model = None
     for _ in range(MAX_TOOL_CALLS + 1):
         data = _openai_call(provider, messages, TOOL_SCHEMAS)
+        actual_model = data.get("model") or actual_model
         msg = data["choices"][0]["message"]
         calls = msg.get("tool_calls") or []
         if not calls:
-            return ProviderResult(msg.get("content") or "Aquí estoy. ¿Qué quieres revisar?", card, names)
+            return ProviderResult(msg.get("content") or "Aquí estoy. ¿Qué quieres revisar?", card, names, actual_model)
         if len(names) >= MAX_TOOL_CALLS:
-            return ProviderResult("Ya consulté el máximo de datos para este turno. Si quieres, pregúntame por una parte específica.", card, names)
+            return ProviderResult("Ya consulté el máximo de datos para este turno. Si quieres, pregúntame por una parte específica.", card, names, actual_model)
         calls = calls[:1]
         assistant_msg: dict[str, Any] = {"role": "assistant", "tool_calls": calls}
         if msg.get("content"):
@@ -437,7 +496,7 @@ def _llm_turn(provider: str, message: str, context: dict[str, Any] | None, histo
                 "content": json.dumps(result, ensure_ascii=False)
             }
             messages.append(tool_msg)
-    return ProviderResult("Puedo consultar esos datos, pero necesito que concretes la pregunta.", card, names)
+    return ProviderResult("Puedo consultar esos datos, pero necesito que concretes la pregunta.", card, names, actual_model)
 
 
 def answer(message: str, context: dict[str, Any] | None = None, history: list[dict[str, str]] | None = None) -> dict[str, Any]:
@@ -449,8 +508,9 @@ def answer(message: str, context: dict[str, Any] | None = None, history: list[di
         try:
             result = _llm_turn(name, message, context, history)
             latency = round((time.monotonic()-started)*1000)
-            log.info("luka provider=%s model=%s latency_ms=%s fallback_count=%s success=true tool_count=%s", name, model_for(name), latency, index, len(result.tool_names))
-            return {"message": result.text, "structured_cards": result.card, "provider": name, "model": model_for(name), "tool_calls": result.tool_names, "fallback_used": False, "fallback_reason": None, "provider_error": None}
+            used_model = result.model or model_for(name)
+            log.info("luka provider=%s model=%s latency_ms=%s fallback_count=%s success=true tool_count=%s", name, used_model, latency, index, len(result.tool_names))
+            return {"message": result.text, "structured_cards": result.card, "provider": name, "model": used_model, "tool_calls": result.tool_names, "fallback_used": False, "fallback_reason": None, "provider_error": None}
         except (httpx.TimeoutException, httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as exc:
             if isinstance(exc, httpx.HTTPStatusError):
                 last_error = f"{exc.response.status_code}: {exc.response.text[:250]}"
