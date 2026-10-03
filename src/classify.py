@@ -97,7 +97,139 @@ def apply_classification(df_norm: pd.DataFrame, rules_path: str, overrides_path:
                 "EsReembolso": int(ov.get("EsReembolso", 0)),
             }
 
-        # 2. Rule evaluation (if no manual override)
+        # 2. Special system transfers
+        if classified is None and ("Transferencia" in tipo_rial):
+            regla_id = "R_TRANSFERENCIA"
+            sub = "Transferencia interna salida" if "salida" in tipo_rial.lower() else "Transferencia interna entrada"
+            classified = {
+                "Dominio": "PATRIMONIAL",
+                "Categoria": "Transferencias",
+                "Subcategoria": subcat_rial or sub,
+                "TitularGasto": "NO_APLICA",
+                "NaturalezaFinanciera": "TRANSFERENCIA_INTERNA",
+                "ConfianzaClasificacion": "HIGH",
+                "PendienteRevision": 0,
+                "EsPresupuestable": 0,
+                "EsConsumoPersonal": 0,
+                "EsIngresoEconomico": 0,
+                "EsEgresoEconomico": 0,
+                "EsNegocio": 0,
+                "EsAhorro": 0,
+                "EsPrestamo": 0,
+                "EsDeuda": 0,
+                "EsTransferencia": 1,
+                "EsReembolso": 0,
+            }
+
+        # 3. Native RIAL Passthrough (Option 3: Single Source of Truth)
+        # If user registered a Categoria in RIAL, we respect it directly (1:1)
+        if classified is None and cat_rial:
+            regla_id = "RIAL_NATIVE"
+            cat_clean = cat_rial.strip()
+            subcat_clean = subcat_rial.strip() if subcat_rial.strip() else cat_clean
+
+            # Dominio & Financial Flags
+            is_cxc = 1 if (
+                ("cuenta" in cat_clean.lower() and "cobrar" in cat_clean.lower()) or
+                "cxc" in cat_clean.lower() or "cxc" in desc.lower() or
+                "cobro de deuda" in cat_clean.lower() or "cobro de deuda" in desc.lower()
+            ) else 0
+
+            is_prestamo = 1 if (
+                cat_clean.lower() in ["préstamo otorgado", "préstamo recibido", "prestamo otorgado", "prestamo recibido", "préstamos", "prestamos"] or
+                "prestamo" in desc.lower() or "préstamo" in desc.lower()
+            ) else 0
+
+            is_ahorro = 1 if (
+                cat_clean.lower() in ["ahorro", "ahorros"] or
+                "saldo inicial" in desc.lower()
+            ) else 0
+
+            is_negocio = 1 if (
+                cat_clean.lower() in ["premiadosve", "gastos premiadosve", "ventas"] or
+                "premiados" in cat_clean.lower() or
+                "premiados" in desc.lower() or
+                "meta ads" in desc.lower()
+            ) else 0
+
+            is_cashea = 1 if (
+                cat_clean.upper() in ["CASHEA", "DEUDA / CASHEA"] or
+                "cashea" in desc.lower() or
+                "cuota" in desc.lower() or
+                cat_clean.lower() in ["pago de deuda", "deuda"]
+            ) else 0
+
+            # Normalize canonical category for Business and Cashea
+            if is_negocio:
+                dominio = "NEGOCIO"
+                titular = "PREMIADOSVE"
+                cat_clean = "PremiadosVE"
+                if tipo_rial == "Ingreso":
+                    nat = "VENTAS"
+                    es_ing, es_egr, es_presup, es_cons = 1, 0, 0, 0
+                    if not subcat_rial or subcat_clean == "Ventas":
+                        subcat_clean = "Ventas"
+                else:
+                    nat = "EGRESO_OPERATIVO"
+                    es_ing, es_egr, es_presup, es_cons = 0, 1, 1, 0
+                    if "meta ads" in desc.lower():
+                        subcat_clean = "Meta Ads / Publicidad"
+            elif is_cxc or is_prestamo:
+                dominio = "PATRIMONIAL"
+                titular = "MARLON"
+                nat = "CUENTA_POR_COBRAR" if is_cxc else "PRESTAMO"
+                es_ing, es_egr, es_presup, es_cons = 0, 0, 0, 0
+                if is_cxc:
+                    cat_clean = "Cuentas por cobrar"
+                    subcat_clean = "Cobro CxC"
+            elif is_ahorro:
+                dominio = "PATRIMONIAL"
+                titular = "MARLON"
+                nat = "AHORRO"
+                cat_clean = "Ahorro"
+                es_ing, es_egr, es_presup, es_cons = 0, 0, 0, 0
+            elif is_cashea:
+                dominio = "PERSONAL"
+                titular = "MARLON"
+                nat = "PAGO_DEUDA"
+                cat_clean = "Deuda / CASHEA"
+                es_ing, es_egr, es_presup = 0, 1, 1
+                is_cuota = "cuota" in desc.lower() or "cuota" in subcat_clean.lower() or not subcat_rial
+                es_cons = 0 if is_cuota else 1
+                if not subcat_rial:
+                    subcat_clean = "Cuota existente"
+            elif cat_clean.lower() in ["salario", "otros ingresos", "ingresos"] or tipo_rial == "Ingreso":
+                dominio = "PERSONAL"
+                titular = "MARLON"
+                nat = "INGRESOS_OPERATIVOS"
+                es_ing, es_egr, es_presup, es_cons = 1, 0, 0, 0
+            else:
+                dominio = "PERSONAL"
+                titular = "MARLON"
+                nat = "EGRESO_CONSUMO"
+                es_ing, es_egr, es_presup, es_cons = 0, 1, 1, 1
+
+            classified = {
+                "Dominio": dominio,
+                "Categoria": cat_clean,
+                "Subcategoria": subcat_clean,
+                "TitularGasto": titular,
+                "NaturalezaFinanciera": nat,
+                "ConfianzaClasificacion": "HIGH",
+                "PendienteRevision": 0,
+                "EsPresupuestable": es_presup,
+                "EsConsumoPersonal": es_cons,
+                "EsIngresoEconomico": es_ing,
+                "EsEgresoEconomico": es_egr,
+                "EsNegocio": is_negocio,
+                "EsAhorro": is_ahorro,
+                "EsPrestamo": is_prestamo,
+                "EsDeuda": is_cashea,
+                "EsTransferencia": 0,
+                "EsReembolso": 0,
+            }
+
+        # 4. Fallback to category_rules.csv only when RIAL Categoria is missing/empty
         if classified is None and not df_rules.empty:
             for _, rule in df_rules.iterrows():
                 r_tipo = str(rule.get("TipoRial", "")).strip()
@@ -142,14 +274,7 @@ def apply_classification(df_norm: pd.DataFrame, rules_path: str, overrides_path:
                 }
                 break
 
-        # Check for YUMMY without sufficient context -> Force UNCLASSIFIED (ONLY if not a manual override)
-        if not is_manual_override and re.search(r"(?i)yummy|yumy", desc):
-            context_keywords = r"(?i)traslado|trabajo|pasaje|casa\b|metropolis|guayos|ag[uú]itas|firestone|honda|canaima|santa\s*rosa|ahorcado|premiados|kit|entrega|cliente|comida|restaurante|donas|perro|hamburguesa|pizza|anilet|cashea"
-            if not re.search(context_keywords, desc):
-                regla_id = "UNCLASSIFIED_YUMMY_NO_CONTEXT"
-                classified = None
-
-        # 3. Fallback PENDIENTE_CLASIFICAR
+        # 5. Fallback PENDIENTE_CLASIFICAR
         if classified is None:
             regla_id = regla_id or "UNCLASSIFIED_FALLBACK"
             classified = {

@@ -310,7 +310,7 @@ def main():
     current_operating_budget = float(
         df_presupuesto[df_presupuesto["Escenario"] == "REALISTIC"]["MontoPresupuestadoUSD"].sum()
     )
-    expected_operating_budget = 631.21
+    expected_operating_budget = 460.23
     regression_ok = round(current_operating_budget, 2) == expected_operating_budget and original_values_preserved
     quality_checks_ok = (
         grain_ok

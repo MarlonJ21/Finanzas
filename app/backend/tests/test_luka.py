@@ -47,7 +47,7 @@ def test_period_comparison_is_deterministic() -> None:
 def test_cash_purchase_simulation_does_not_mutate_data() -> None:
     data = luka.simulate_cash_purchase(80)
     assert data["monthly_available_after"] == round(data["monthly_available_before"] - 80, 2)
-    assert data["safe_to_spend_after"] == max(min(data["monthly_available_after"], data["biweekly_available_before"] - 80), 0)
+    assert data["safe_to_spend_after"] == round(max(min(data["monthly_available_after"], data["biweekly_available_before"] - 80), 0), 2)
     assert "items" not in data and "description" not in data
     assert not {"account", "account_number", "transaction_id", "reference", "raw_transactions"}.intersection(data)
 
@@ -278,22 +278,22 @@ def test_deterministic_movement_questions(monkeypatch: pytest.MonkeyPatch) -> No
     ans_today = luka.answer("¿Cuánto había gastado hoy?")
     assert ans_today["provider"] == "deterministic"
     assert "get_daily_spending" in ans_today["tool_calls"]
-    assert "$42.99" in ans_today["message"]
-    assert "Gemini" in ans_today["message"]
+    assert "$11.54" in ans_today["message"]
+    assert "Yummy" in ans_today["message"]
 
 
 def test_get_daily_spending() -> None:
-    res = luka.get_daily_spending("2026-09-28")
-    assert res["date"] == "2026-09-28"
-    assert res["total_spent_usd"] == 42.99
-    assert res["personal_spent_usd"] == 19.99
-    assert res["business_spent_usd"] == 23.00
-    assert res["total_income_usd"] == 52.33
-    assert res["expense_count"] == 2
-    # Verify Gemini is classified as Suscripciones / Herramientas
-    gemini_item = next(e for e in res["expenses"] if "Gemini" in e["description"])
-    assert gemini_item["category"] == "Suscripciones / Herramientas"
-    assert gemini_item["subcategory"] == "Gemini"
+    res = luka.get_daily_spending("2026-10-03")
+    assert res["date"] == "2026-10-03"
+    assert res["total_spent_usd"] == 11.54
+    assert res["personal_spent_usd"] == 11.54
+    assert res["business_spent_usd"] == 0.00
+    assert res["total_income_usd"] == 40.00
+    assert res["expense_count"] == 7
+    # Verify Yummy is classified natively as Transporte
+    yummy_item = next(e for e in res["expenses"] if "Yummy" in e["description"])
+    assert yummy_item["category"] == "Transporte"
+    assert yummy_item["subcategory"] == "Taxis"
 
 
 def test_premiadosve_spending(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -303,26 +303,26 @@ def test_premiadosve_spending(monkeypatch: pytest.MonkeyPatch) -> None:
     ans = luka.answer("cuánto he gastado en total de premiados VE")
     assert ans["provider"] == "deterministic"
     assert "get_spending_by_category" in ans["tool_calls"]
-    assert "$199.87" in ans["message"]
-    assert "$53.73" in ans["message"]
+    assert "$205.29" in ans["message"]
+    assert "$5.48" in ans["message"]
 
     cat_data = luka.get_spending_by_category("PremiadosVE")
     assert cat_data["domain"] == "NEGOCIO"
-    assert cat_data["all_time_spent_usd"] == 199.87
-    assert cat_data["amount_usd"] == 53.73
-    assert cat_data["all_time_income_usd"] == 570.48
+    assert cat_data["all_time_spent_usd"] == 205.29
+    assert cat_data["amount_usd"] == 5.48
+    assert cat_data["all_time_income_usd"] == 720.78
 
 
 def test_get_sales_and_income() -> None:
     sales = luka.get_sales_and_income("PremiadosVE")
     assert sales["business_or_category"] == "PremiadosVE"
-    assert sales["period_sales_usd"] == 162.77
-    assert sales["period_sales_count"] == 5
-    assert sales["all_time_sales_usd"] == 570.48
-    assert sales["all_time_sales_count"] == 16
-    assert sales["period_expenses_usd"] == 53.73
-    assert sales["period_net_profit_usd"] == 109.04
-    assert sales["all_time_net_profit_usd"] == 370.61
+    assert sales["period_sales_usd"] == 113.50
+    assert sales["period_sales_count"] == 3
+    assert sales["all_time_sales_usd"] == 720.78
+    assert sales["all_time_sales_count"] == 19
+    assert sales["period_expenses_usd"] == 5.48
+    assert sales["period_net_profit_usd"] == 108.02
+    assert sales["all_time_net_profit_usd"] == 515.49
     assert len(sales["recent_sales"]) > 0
 
     # Test search_transactions with transaction_type="income"
@@ -338,14 +338,14 @@ def test_sales_and_income_deterministic(monkeypatch: pytest.MonkeyPatch) -> None
     ans_month = luka.answer("¿Cuáles fueron mis ventas?")
     assert ans_month["provider"] == "deterministic"
     assert "get_sales_and_income" in ans_month["tool_calls"]
-    assert "$162.77" in ans_month["message"]
-    assert "$570.48" in ans_month["message"]
-    assert "+$109.04" in ans_month["message"]
+    assert "$113.50" in ans_month["message"]
+    assert "$720.78" in ans_month["message"]
+    assert "+$108.02" in ans_month["message"]
 
     ans_total = luka.answer("¿Cuánto he vendido en total de PremiadosVE?")
     assert ans_total["provider"] == "deterministic"
     assert "get_sales_and_income" in ans_total["tool_calls"]
-    assert "$570.48" in ans_total["message"]
+    assert "$720.78" in ans_total["message"]
 
 
 

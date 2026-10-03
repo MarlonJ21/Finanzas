@@ -134,8 +134,7 @@ def _planning_context(df_mov: pd.DataFrame) -> ForecastContext:
     salary_q1 = df_mov[
         month_mask
         & (df_mov["Dominio"] == "PERSONAL")
-        & (df_mov["Categoria"] == "Ingresos")
-        & (df_mov["Subcategoria"] == "Salario")
+        & ((df_mov["Categoria"] == "Salario") | ((df_mov["Categoria"] == "Ingresos") & (df_mov["Subcategoria"] == "Salario")))
         & (df_mov["EsIngresoEconomico"] == 1)
         & (df_mov["Quincena"] == 1)
         & (df_mov["MontoUSD"] > 0)

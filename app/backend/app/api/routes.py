@@ -116,16 +116,16 @@ def dashboard_summary(
     salary = query_one(
         """
         SELECT SUM(MontoUSD) AS v FROM movimientos
-        WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND Categoria='Ingresos'
-          AND Subcategoria='Salario' AND EsIngresoEconomico=1
+        WHERE Fecha LIKE ? AND Dominio='PERSONAL' AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
+          AND EsIngresoEconomico=1
         """,
         [like],
     )
     salary_q = query_one(
         """
         SELECT SUM(MontoUSD) AS v FROM movimientos
-        WHERE Fecha LIKE ? AND Quincena=? AND Dominio='PERSONAL' AND Categoria='Ingresos'
-          AND Subcategoria='Salario' AND EsIngresoEconomico=1
+        WHERE Fecha LIKE ? AND Quincena=? AND Dominio='PERSONAL' AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
+          AND EsIngresoEconomico=1
         """,
         [like, q],
     )

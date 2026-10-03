@@ -46,8 +46,7 @@ def sustainable_income(month: str | None = None) -> float:
             FROM movimientos
             WHERE Fecha LIKE ?
               AND Dominio='PERSONAL'
-              AND Categoria='Ingresos'
-              AND Subcategoria='Salario'
+              AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
               AND EsIngresoEconomico=1
               AND Quincena=1
             """,
@@ -62,8 +61,7 @@ def sustainable_income(month: str | None = None) -> float:
         SELECT MontoUSD AS amount
         FROM movimientos
         WHERE Dominio='PERSONAL'
-          AND Categoria='Ingresos'
-          AND Subcategoria='Salario'
+          AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
           AND EsIngresoEconomico=1
           AND Quincena=1
         ORDER BY Fecha DESC
