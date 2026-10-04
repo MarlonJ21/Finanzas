@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Bot, CalendarDays, Home, Landmark, RefreshCw, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
+import { BarChart3, Bot, CalendarDays, CheckCircle2, Home, Landmark, Loader2, RefreshCw, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
 import { useState } from "react";
 import { api, uploadRial, type DataStatus } from "../../lib/api";
 
@@ -123,10 +123,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+const ETL_STEPS = [
+  { id: 0, label: "Validación CSV", desc: "Comprobando columnas y estructura" },
+  { id: 1, label: "Normalización", desc: "Mapeando cuentas, monedas y tasas" },
+  { id: 2, label: "Clasificación", desc: "Asignando categorías nativas y dominios" },
+  { id: 3, label: "Presupuesto", desc: "Consolidando cuotas, deudas y límites" },
+  { id: 4, label: "Forecast", desc: "Calculando proyecciones y escenarios" },
+  { id: 5, label: "Integridad", desc: "Verificando grano y guardando datos" },
+];
+
 function RialModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<"preview" | "commit" | null>(null);
+  const [activeStep, setActiveStep] = useState<number>(-1);
+  const [progressPct, setProgressPct] = useState<number>(0);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -134,13 +145,31 @@ function RialModal({ onClose }: { onClose: () => void }) {
     if (!file) return;
     setBusy(mode);
     setError(null);
+    setActiveStep(0);
+    setProgressPct(15);
+
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 1;
+      if (current <= 4) {
+        setActiveStep(current);
+        setProgressPct(Math.min(20 + current * 16, 85));
+      }
+    }, 600);
+
     try {
       const response = await uploadRial(mode, file);
+      clearInterval(interval);
+      setActiveStep(5);
+      setProgressPct(100);
       setResult(response);
       if (mode === "commit" && response.commit_status === "PASS") {
         await queryClient.invalidateQueries();
       }
     } catch (err: any) {
+      clearInterval(interval);
+      setActiveStep(-1);
+      setProgressPct(0);
       setError(err?.message || "Error al procesar el archivo. Revisa que el backend esté disponible.");
     } finally {
       setBusy(null);
@@ -171,11 +200,54 @@ function RialModal({ onClose }: { onClose: () => void }) {
               <p className="subtle">o selecciona un archivo CSV</p>
             </span>
           </label>
-          <div className="step-list">
-            {["Archivo validado", "Normalizacion", "Clasificacion", "Presupuesto", "Forecast", "Validacion"].map((step, index) => (
-              <div className={`step ${result ? "done" : index === 0 && busy ? "active" : ""}`} key={step}>{result ? "✓" : index === 0 && busy ? "●" : "○"} {step}</div>
-            ))}
+
+          {/* Stepper animado y barra de progreso */}
+          <div className="etl-stepper-box">
+            {busy && (
+              <>
+                <div className="etl-progress-bar-wrap">
+                  <div className="etl-progress-fill" style={{ width: `${progressPct}%` }} />
+                </div>
+                <div className="etl-phase-banner">
+                  <div className="etl-phase-pulse" />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <strong style={{ fontSize: 13, color: "var(--cyan)" }}>
+                      {busy === "commit" ? "Guardando en el Data Warehouse..." : "Validando y procesando..."}: {ETL_STEPS[Math.max(activeStep, 0)]?.label}
+                    </strong>
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>
+                      {ETL_STEPS[Math.max(activeStep, 0)]?.desc}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="step-list">
+              {ETL_STEPS.map((s, index) => {
+                const isDone = Boolean(result) || (busy !== null && index < activeStep);
+                const isCurrent = busy !== null && index === activeStep;
+                return (
+                  <div
+                    className={`step ${isDone ? "done" : isCurrent ? "current-running active" : ""}`}
+                    key={s.id}
+                  >
+                    {isDone ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <CheckCircle2 size={13} style={{ color: "var(--green)" }} /> {s.label}
+                      </span>
+                    ) : isCurrent ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <Loader2 size={13} className="spin-animate" style={{ color: "var(--cyan)" }} /> {s.label}
+                      </span>
+                    ) : (
+                      <span>○ {s.label}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
           {result ? (
             <div className="surface-lite panel-pad">
               <h2>{ready ? "LISTO PARA ACTUALIZAR" : "REVISAR"}</h2>
@@ -208,8 +280,32 @@ function RialModal({ onClose }: { onClose: () => void }) {
             </div>
           ) : (
             <div className="button-row">
-              <button className="secondary-button" disabled={!file || !!busy} onClick={() => run("preview")}>{busy === "preview" ? "Validando" : "Preview"}</button>
-              <button className="primary-button" disabled={!file || !!busy || !ready} onClick={() => run("commit")}>{busy === "commit" ? "Actualizando" : "Actualizar mis finanzas"}</button>
+              <button
+                className="secondary-button"
+                disabled={!file || !!busy}
+                onClick={() => run("preview")}
+              >
+                {busy === "preview" ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Loader2 size={15} className="spin-animate" /> Validando archivo...
+                  </span>
+                ) : (
+                  "Preview"
+                )}
+              </button>
+              <button
+                className="primary-button"
+                disabled={!file || !!busy || !ready}
+                onClick={() => run("commit")}
+              >
+                {busy === "commit" ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Loader2 size={15} className="spin-animate" /> Actualizando finanzas...
+                  </span>
+                ) : (
+                  "Actualizar mis finanzas"
+                )}
+              </button>
             </div>
           )}
         </div>

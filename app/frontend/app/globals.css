@@ -1157,3 +1157,245 @@ h2 { margin-bottom: 6px; font-size: 18px; font-weight: 800; }
   color: var(--cyan);
   border-color: rgba(32, 215, 232, 0.4);
 }
+
+/* =========================================================
+   FX MODAL & CURRENCY CONTROLS
+   ========================================================= */
+
+.clickable-fx-rate {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 120ms ease;
+  user-select: none;
+}
+
+.clickable-fx-rate:hover {
+  background: rgba(32, 215, 232, 0.12);
+  border-color: rgba(32, 215, 232, 0.4);
+}
+
+.clickable-fx-rate:active {
+  transform: scale(0.96);
+}
+
+.fx-gear-icon {
+  color: var(--muted);
+  opacity: 0.7;
+  transition: all 120ms ease;
+}
+
+.clickable-fx-rate:hover .fx-gear-icon {
+  color: var(--cyan);
+  opacity: 1;
+  transform: rotate(45deg);
+}
+
+.fx-config-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: rgba(39, 68, 108, 0.25);
+  border: 1px solid rgba(39, 68, 108, 0.5);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.fx-config-btn:hover {
+  background: rgba(32, 215, 232, 0.15);
+  border-color: rgba(32, 215, 232, 0.4);
+  color: var(--cyan);
+}
+
+.fx-config-btn:active {
+  transform: scale(0.94);
+}
+
+.fx-modal {
+  max-width: 600px;
+}
+
+.fx-rates-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fx-rate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(39, 68, 108, 0.45);
+  background: rgba(8, 21, 46, 0.4);
+}
+
+.fx-rate-card.usdt {
+  border-color: rgba(32, 215, 232, 0.35);
+  background: rgba(32, 215, 232, 0.04);
+}
+
+.fx-card-title {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--muted);
+}
+
+.fx-card-val {
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: #ffffff;
+}
+
+.fx-card-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.fx-mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.fx-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(39, 68, 108, 0.45);
+  background: rgba(8, 21, 46, 0.3);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.fx-mode-option:hover {
+  background: rgba(17, 36, 69, 0.45);
+  border-color: rgba(32, 215, 232, 0.3);
+}
+
+.fx-mode-option.active {
+  border-color: rgba(32, 215, 232, 0.6);
+  background: rgba(32, 215, 232, 0.08);
+}
+
+.fx-mode-radio {
+  padding-top: 2px;
+}
+
+.fx-mode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.badge-recommend {
+  background: rgba(51, 230, 164, 0.15);
+  border: 1px solid rgba(51, 230, 164, 0.4);
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.fx-sync-mini-btn {
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  height: 24px !important;
+  gap: 4px !important;
+  border-radius: 6px !important;
+  color: var(--cyan) !important;
+}
+
+.fx-manual-input-box {
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(2, 8, 20, 0.4);
+  border-radius: 10px;
+  border: 1px solid rgba(39, 68, 108, 0.3);
+}
+
+/* =========================================================
+   ANIMATED ETL PIPELINE STEPPER
+   ========================================================= */
+
+.etl-stepper-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+
+.etl-progress-bar-wrap {
+  width: 100%;
+  height: 5px;
+  background: rgba(39, 68, 108, 0.35);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.etl-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--green) 100%);
+  border-radius: 9999px;
+  transition: width 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(32, 215, 232, 0.5);
+}
+
+.etl-phase-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(32, 215, 232, 0.07);
+  border: 1px solid rgba(32, 215, 232, 0.25);
+  animation: fadeIn 200ms ease;
+}
+
+.etl-phase-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--cyan);
+  box-shadow: 0 0 0 0 rgba(32, 215, 232, 0.7);
+  animation: pulseRipple 1.4s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseRipple {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(32, 215, 232, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(32, 215, 232, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(32, 215, 232, 0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-animate {
+  animation: spin 1s linear infinite;
+}
+
+.step.current-running {
+  color: var(--cyan);
+  border-color: rgba(32, 215, 232, 0.8);
+  background: rgba(32, 215, 232, 0.12);
+  box-shadow: 0 0 12px rgba(32, 215, 232, 0.2);
+  font-weight: 750;
+}
+

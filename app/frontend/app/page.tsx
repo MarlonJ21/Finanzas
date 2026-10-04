@@ -22,6 +22,7 @@ import {
   Scale,
   ShieldCheck,
   ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
   TrendingDown,
   TrendingUp,
@@ -29,10 +30,12 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { api, bs, money, pct, type Category, type DashboardSummary, type DataStatus } from "../lib/api";
+import FxConfigModal from "./components/FxConfigModal";
 
 export default function HomePage() {
   const [currencyMode, setCurrencyMode] = useState<"USD" | "VES">("USD");
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showFxModal, setShowFxModal] = useState(false);
 
   const status = useQuery({ queryKey: ["data-status"], queryFn: () => api<DataStatus>("/data/status") });
   const currentMonth = status.data?.current_month?.slice(0, 7);
@@ -137,20 +140,35 @@ export default function HomePage() {
             <strong>{rateBcv.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
           </div>
           <div className="fx-divider" />
-          <div className="fx-rate-item">
+          <div
+            className="fx-rate-item clickable-fx-rate"
+            onClick={() => setShowFxModal(true)}
+            title="Toca para configurar la tasa de Binance"
+          >
             <span className="fx-flag">🟡 USDT</span>
             <strong>{rateUsdt.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</strong>
+            <SlidersHorizontal size={12} className="fx-gear-icon" />
           </div>
           <span className="fx-spread-badge">+{fxSpreadPct.toFixed(1)}%</span>
         </div>
-        <button
-          className="fx-toggle-btn"
-          onClick={() => setCurrencyMode((prev) => (prev === "USD" ? "VES" : "USD"))}
-          title="Alternar vista en Bolívares o Dólares"
-        >
-          <Coins size={14} />
-          <span>Ver en {currencyMode === "USD" ? "Bs." : "USD"}</span>
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            className="fx-config-btn"
+            onClick={() => setShowFxModal(true)}
+            title="Configurar tasa Binance USDT"
+          >
+            <SlidersHorizontal size={13} />
+            <span>Configurar</span>
+          </button>
+          <button
+            className="fx-toggle-btn"
+            onClick={() => setCurrencyMode((prev) => (prev === "USD" ? "VES" : "USD"))}
+            title="Alternar vista en Bolívares o Dólares"
+          >
+            <Coins size={14} />
+            <span>Ver en {currencyMode === "USD" ? "Bs." : "USD"}</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. HERO STORY CARD: Tu disponible protagonista */}
@@ -373,6 +391,8 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {showFxModal && <FxConfigModal onClose={() => setShowFxModal(false)} />}
     </section>
   );
 }

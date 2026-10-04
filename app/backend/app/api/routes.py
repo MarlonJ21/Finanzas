@@ -22,9 +22,15 @@ from app.services.classification import (
 )
 from app.services.db import query_all, query_one
 from app.services.etl import commit_import, preview_import, run_existing_pipeline
+from app.services.fx import get_fx_state, update_fx_settings
 from app.services.metrics import as_float, as_pct, latest_context, quality_summary, sustainable_income
 
 router = APIRouter(prefix="/api")
+
+
+class FxConfigPayload(BaseModel):
+    mode: str = Field(pattern="^(auto|manual)$")
+    manual_rate: float | None = Field(default=None, gt=0)
 
 
 class OverridePayload(BaseModel):
@@ -153,23 +159,10 @@ def dashboard_summary(
     safe_to_spend = as_float(max(min(monthly_available, biweekly_available), 0))
     saving_target = as_float(income_sustainable - monthly_budget)
 
-    # Query latest registered FX rates from data
-    bcv_res = query_one(
-        """
-        SELECT TasaRegistrada AS v FROM movimientos
-        WHERE MonedaOriginal='VES' AND TasaRegistrada > 0 AND Cuenta IN ('BNC', 'Bancamiga', 'Efectivo')
-        ORDER BY Fecha DESC, Hora DESC LIMIT 1
-        """
-    )
-    usdt_res = query_one(
-        """
-        SELECT TasaRegistrada AS v FROM movimientos
-        WHERE Cuenta='Binance' AND TasaRegistrada > 800
-        ORDER BY Fecha DESC, Hora DESC LIMIT 1
-        """
-    )
-    rate_bcv = as_float(bcv_res.get("v")) or 857.01
-    rate_usdt = as_float(usdt_res.get("v")) or 960.05
+    # Query latest registered FX rates from FX service
+    fx_state = get_fx_state()
+    rate_bcv = fx_state["rate_bcv"]
+    rate_usdt = fx_state["rate_usdt"]
 
     return {
         "income_sustainable": income_sustainable,
@@ -489,4 +482,20 @@ def classification_delete_rule(rule_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Error eliminando regla: {str(exc)}")
+
+
+@router.get("/fx/rates")
+def fx_rates() -> dict[str, Any]:
+    return get_fx_state()
+
+
+@router.post("/fx/config")
+def fx_config(payload: FxConfigPayload) -> dict[str, Any]:
+    return update_fx_settings(payload.mode, payload.manual_rate)
+
+
+@router.post("/fx/sync")
+def fx_sync() -> dict[str, Any]:
+    return get_fx_state(force_sync=True)
+
 

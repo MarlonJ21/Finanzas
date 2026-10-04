@@ -299,3 +299,43 @@ export type CreateRulePayload = {
   priority?: number;
 };
 
+export type FxRatesResponse = {
+  rate_bcv: number;
+  rate_usdt: number;
+  spread_pct: number;
+  mode: "auto" | "manual";
+  manual_rate: number;
+  live_rate: number | null;
+  last_sync: string;
+  source: string;
+};
+
+export type FxConfigPayload = {
+  mode: "auto" | "manual";
+  manual_rate?: number;
+};
+
+export async function getFxRates(): Promise<FxRatesResponse> {
+  const res = await fetch(`${getApiBase()}/fx/rates`, { cache: "no-store" });
+  if (!res.ok) throw new Error("ERROR_FETCHING_FX_RATES");
+  return res.json();
+}
+
+export async function updateFxConfig(payload: FxConfigPayload): Promise<FxRatesResponse> {
+  const res = await fetch(`${getApiBase()}/fx/config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("ERROR_UPDATING_FX_CONFIG");
+  return res.json();
+}
+
+export async function syncFxRates(): Promise<FxRatesResponse> {
+  const res = await fetch(`${getApiBase()}/fx/sync`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("ERROR_SYNCING_FX_RATES");
+  return res.json();
+}
+

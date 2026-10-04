@@ -288,6 +288,9 @@ def summarize_output(output_dir: Path) -> dict[str, Any]:
     }
 
 
+LATEST_PREVIEWS: dict[str, dict[str, Any]] = {}
+
+
 def preview_import(csv_path: Path, original_name: str) -> dict[str, Any]:
     started = time.perf_counter()
     base = validate_csv_file(csv_path, original_name)
@@ -311,7 +314,7 @@ def preview_import(csv_path: Path, original_name: str) -> dict[str, Any]:
         if already_imported(file_hash):
             warnings.append("FILE_ALREADY_IMPORTED")
     duration_ms = int((time.perf_counter() - started) * 1000)
-    return {
+    res = {
         "filename": original_name,
         "file_hash": file_hash,
         "file_size": base["file_size"],
@@ -335,6 +338,9 @@ def preview_import(csv_path: Path, original_name: str) -> dict[str, Any]:
         "warnings": warnings,
         "staging_path": str(staging),
     }
+    if status == "PASS":
+        LATEST_PREVIEWS[file_hash] = res
+    return res
 
 
 def current_raw_file() -> Path | None:
@@ -354,7 +360,17 @@ def archive_current_raw() -> Path | None:
 
 def commit_import(csv_path: Path, original_name: str, force: bool = False) -> dict[str, Any]:
     started = time.perf_counter()
-    preview = preview_import(csv_path, original_name)
+    file_hash = sha256_file(csv_path)
+    cached_preview = LATEST_PREVIEWS.get(file_hash)
+    if (
+        cached_preview
+        and cached_preview.get("validation_status") == "PASS"
+        and Path(cached_preview.get("staging_path", "")).exists()
+        and (Path(cached_preview.get("staging_path", "")) / "output" / "movimientos.parquet").exists()
+    ):
+        preview = cached_preview
+    else:
+        preview = preview_import(csv_path, original_name)
     if preview["validation_status"] != "PASS":
         return {**preview, "commit_status": "FAIL", "rollback": True}
     if "FILE_ALREADY_IMPORTED" in preview["warnings"] and not force:
