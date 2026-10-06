@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Bot, CalendarDays, CheckCircle2, Home, Landmark, Loader2, RefreshCw, ShoppingBag, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
+import { BarChart3, Bot, CalendarDays, CheckCircle2, Download, Home, Landmark, Loader2, RefreshCw, ShoppingBag, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
 import { useState } from "react";
-import { api, uploadRial, type DataStatus } from "../../lib/api";
+import { api, getApiBase, uploadRial, type DataStatus } from "../../lib/api";
 
 const nav = [
   { href: "/", label: "Inicio", icon: Home },
@@ -44,6 +44,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="mobile-corte-pill">
             {status.data?.cut_date ? `Corte ${status.data.cut_date.slice(5)}` : "Corte -"}
           </span>
+          <a
+            href={`${getApiBase()}/export/rial`}
+            download="rial-movimientos_historico_consolidado.csv"
+            className="mobile-sync-btn"
+            title="Descargar CSV Histórico"
+            aria-label="Descargar CSV Histórico"
+          >
+            <Download size={16} />
+          </a>
           <button className="mobile-sync-btn" onClick={() => setOpen(true)} title="Actualizar RIAL" aria-label="Actualizar RIAL">
             <Upload size={16} />
           </button>
@@ -94,7 +103,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="context-pill">Corte {status.data?.cut_date ?? "-"}</span>
             <span className="context-pill"><WalletCards size={15} />{status.data?.movement_count ?? 0} movimientos</span>
           </div>
-          <button className="primary-button" onClick={() => setOpen(true)}><RefreshCw size={16} />Actualizar RIAL</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <a
+              href={`${getApiBase()}/export/rial`}
+              download="rial-movimientos_historico_consolidado.csv"
+              className="secondary-button"
+              title="Descargar base de datos histórica consolidada en CSV"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", padding: "0 12px", minHeight: 38 }}
+            >
+              <Download size={15} />
+              <span className="desktop-only">Descargar CSV</span>
+            </a>
+            <button className="primary-button" onClick={() => setOpen(true)}><RefreshCw size={16} />Actualizar RIAL</button>
+          </div>
         </div>
         {children}
       </main>
@@ -199,6 +220,46 @@ function RialModal({ onClose }: { onClose: () => void }) {
           <button className="ghost-button" aria-label="Cerrar" disabled={busy} onClick={onClose}><X size={18} /></button>
         </div>
         <div className="panel-pad page">
+          {!busy && !isSuccess && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 14px",
+              background: "rgba(32, 215, 232, 0.08)",
+              border: "1px solid rgba(32, 215, 232, 0.22)",
+              borderRadius: 12,
+              marginBottom: 10,
+              gap: 10,
+              flexWrap: "wrap",
+            }}>
+              <div>
+                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#ffffff" }}>
+                  ¿Quieres descargar tu CSV histórico?
+                </div>
+                <div style={{ fontSize: "0.74rem", color: "var(--muted)" }}>
+                  Base consolidada con 572 movimientos al corte actual
+                </div>
+              </div>
+              <a
+                href={`${getApiBase()}/export/rial`}
+                download="rial-movimientos_historico_consolidado.csv"
+                className="secondary-button"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "5px 12px",
+                  fontSize: "0.8rem",
+                  color: "var(--cyan)",
+                  textDecoration: "none",
+                }}
+              >
+                <Download size={14} /> Descargar CSV
+              </a>
+            </div>
+          )}
+
           {!isSuccess ? (
             <label className={`dropzone ${busy ? "disabled-dropzone" : ""}`} style={{ pointerEvents: busy ? "none" : "auto", opacity: busy ? 0.7 : 1 }}>
               <input

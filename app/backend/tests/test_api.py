@@ -129,3 +129,13 @@ def test_business_movements():
     assert all(item["type"] == "Ingreso" for item in data_sales["items"])
 
 
+def test_export_rial():
+    client = TestClient(app)
+    r = client.get("/api/export/rial")
+    assert r.status_code == 200
+    assert "text/csv" in r.headers["content-type"]
+    assert "attachment" in r.headers.get("content-disposition", "")
+    assert "Fecha,Hora,Tipo" in r.text
+
+
+

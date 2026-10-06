@@ -9,9 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from app.core.config import APP_VERSION, CONFIG_DIR, OUTPUT_DIR, PROJECT_ROOT
+from app.core.config import APP_VERSION, CONFIG_DIR, OUTPUT_DIR, PROJECT_ROOT, RAW_DIR
 from app.services.classification import (
     CreateRulePayload,
     create_rule,
@@ -647,6 +648,22 @@ async def rial_commit(file: UploadFile = File(...), force: bool = False) -> dict
         return commit_import(path, file.filename or "upload.csv", force=force)
     except Exception as exc:
         return {"filename": file.filename, "commit_status": "FAIL", "errors": [str(exc)], "rollback": True}
+
+
+@router.get("/export/rial")
+def export_rial() -> FileResponse:
+    candidates = [
+        RAW_DIR / "rial-movimientos_2000-01-01_a_2100-12-31.csv",
+        PROJECT_ROOT / "rial-movimientos_2000-01-01_a_2100-12-31.csv",
+    ]
+    for p in candidates:
+        if p.exists():
+            return FileResponse(
+                path=str(p),
+                filename="rial-movimientos_historico_consolidado.csv",
+                media_type="text/csv",
+            )
+    raise HTTPException(status_code=404, detail="CSV_NOT_FOUND")
 
 
 @router.get("/classification/pending")
