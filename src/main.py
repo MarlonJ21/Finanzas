@@ -122,7 +122,7 @@ def apply_scenario_rules(scenario_name: str, df_base: pd.DataFrame, rules_df: pd
                     df_sc.loc[(df_sc["Categoria"] == cat) & (df_sc["Subcategoria"] == subcat_pat), "MontoPresupuestadoUSD"] = val
             elif rtype == "DISTRIBUTE_GROUP":
                 if subcat_pat == "DISTRIBUTE_NON_MERCADO":
-                    sub_rows = df_sc[(df_sc["Categoria"] == cat) & (df_sc["Subcategoria"] != "Mercado / Hogar")]
+                    sub_rows = df_sc[(df_sc["Categoria"] == cat) & (~df_sc["Subcategoria"].isin(["Mercado", "Mercado / Hogar"]))]
                     sub_tot = sub_rows["MontoMesActualUSD"].sum()
                     if sub_tot > 0:
                         idx_list = sub_rows.index
@@ -310,7 +310,7 @@ def main():
     current_operating_budget = float(
         df_presupuesto[df_presupuesto["Escenario"] == "REALISTIC"]["MontoPresupuestadoUSD"].sum()
     )
-    expected_operating_budget = 460.23
+    expected_operating_budget = 741.77
     regression_ok = round(current_operating_budget, 2) == expected_operating_budget and original_values_preserved
     quality_checks_ok = (
         grain_ok

@@ -1,7 +1,9 @@
 Escenario,Categoria,Subcategoria,Q1Pct,Q2Pct,Metodo
 REALISTIC,Deuda / CASHEA,Cuota existente,0.50,0.50,PAYCHECK_MATCH
+REALISTIC,Alimentación,Mercado,0.50,0.50,EQUAL_SPLIT
 REALISTIC,Alimentación,Mercado / Hogar,0.50,0.50,EQUAL_SPLIT
 REALISTIC,Salud,*,0.50,0.50,RESERVE_SPLIT
 AGGRESSIVE,Deuda / CASHEA,Cuota existente,0.50,0.50,PAYCHECK_MATCH
+AGGRESSIVE,Alimentación,Mercado,0.50,0.50,EQUAL_SPLIT
 AGGRESSIVE,Alimentación,Mercado / Hogar,0.50,0.50,EQUAL_SPLIT
 AGGRESSIVE,Salud,*,0.50,0.50,RESERVE_SPLIT

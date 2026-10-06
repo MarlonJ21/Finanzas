@@ -315,24 +315,35 @@ export default function HomePage() {
             const isOver = row.consumed_pct >= 1;
             const isNear = row.consumed_pct >= 0.8 && row.consumed_pct < 1;
             const barClass = isOver ? "var(--red)" : isNear ? "var(--yellow)" : "var(--cyan)";
+            const subTitle = row.subcategory && row.subcategory !== row.category ? row.subcategory : row.category;
+            const hasDistinctCategory = Boolean(row.subcategory && row.subcategory !== row.category);
 
             return (
               <Link
-                href={`/movements?category=${encodeURIComponent(row.category)}`}
+                href={`/movements?category=${encodeURIComponent(row.category)}&subcategory=${encodeURIComponent(row.subcategory || "")}`}
                 className="cat-card clickable-cat-card"
                 key={`${row.category}-${row.subcategory}`}
-                title={`Ver movimientos de ${row.category}`}
+                title={`Ver movimientos de ${subTitle} (${row.category})`}
               >
                 <div className="cat-icon-wrap">
                   <Icon size={20} />
                 </div>
                 <div className="cat-details">
                   <div className="cat-header-line">
-                    <span className="cat-name">{row.category}</span>
+                    <div style={{ display: "flex", alignItems: "center", minWidth: 0, gap: 6, flexWrap: "wrap" }}>
+                      <span className="cat-name">{subTitle}</span>
+                      {hasDistinctCategory && (
+                        <span className="cat-parent-badge">{row.category}</span>
+                      )}
+                    </div>
                     <span className="cat-spent">{money(row.spent)}</span>
                   </div>
                   <div className="cat-header-line">
-                    <span className="cat-subname">{row.subcategory}</span>
+                    <span className="cat-subname">
+                      {row.available >= 0
+                        ? `Te quedan ${money(row.available)}`
+                        : `Sobregiro de ${money(Math.abs(row.available))}`}
+                    </span>
                     <span className="cat-budget-line">
                       de {money(row.budget)} ({pct(row.consumed_pct)})
                     </span>

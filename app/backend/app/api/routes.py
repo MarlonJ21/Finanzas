@@ -102,6 +102,17 @@ def data_status() -> dict[str, Any]:
     }
 
 
+def prev_month_like(like_str: str) -> str:
+    clean = like_str.replace("%", "").strip()[:7]
+    try:
+        y, m = int(clean[:4]), int(clean[5:7])
+        if m == 1:
+            return f"{y - 1:04d}-12%"
+        return f"{y:04d}-{m - 1:02d}%"
+    except Exception:
+        return ""
+
+
 @router.get("/dashboard/summary")
 def dashboard_summary(
     month: str | None = None,
@@ -110,7 +121,7 @@ def dashboard_summary(
 ) -> dict[str, Any]:
     sc = scenario_value(scenario)
     like = month_like(month)
-    q = biweekly_period or current_quincena()
+    q = biweekly_period if isinstance(biweekly_period, int) else current_quincena()
     budget = query_one("SELECT SUM(MontoPresupuestadoUSD) AS v FROM presupuesto WHERE Escenario=?", [sc])
     spend = query_one(
         """
@@ -155,6 +166,28 @@ def dashboard_summary(
     biweekly_spend = as_float(bi_spend.get("v"))
     biweekly_available = as_float(biweekly_budget - biweekly_spend)
 
+    # Quincena Funding Logic:
+    # Quincena 1 (days 1-15) is lived using the salary collected in Quincena 2 of the prior month.
+    # Quincena 2 (days 16-31) is lived using the salary collected in Quincena 1 of current month.
+    if q == 1:
+        prev_like = prev_month_like(like)
+        prev_salary = query_one(
+            """
+            SELECT SUM(MontoUSD) AS v FROM movimientos
+            WHERE Fecha LIKE ? AND Quincena=2 AND Dominio='PERSONAL' AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
+              AND EsIngresoEconomico=1
+            """,
+            [prev_like],
+        )
+        funding_val = as_float(prev_salary.get("v"))
+        current_q_val = as_float(salary_q.get("v"))
+        salary_funding = funding_val if funding_val > 0 else current_q_val
+        if salary_funding == 0:
+            salary_funding = as_float(income_sustainable / 2)
+    else:
+        current_q_val = as_float(salary_q.get("v"))
+        salary_funding = current_q_val if current_q_val > 0 else as_float(income_sustainable / 2)
+
     # Safe to spend is strictly constrained by BOTH the quincena availability and remaining monthly budget
     safe_to_spend = as_float(max(min(monthly_available, biweekly_available), 0))
     saving_target = as_float(income_sustainable - monthly_budget)
@@ -178,7 +211,8 @@ def dashboard_summary(
         "saving_target": saving_target,
         "saving_rate": as_pct(saving_target / income_sustainable if income_sustainable else 0),
         "biweekly_period": q,
-        "salary_collected_biweekly": as_float(salary_q.get("v")),
+        "salary_collected_biweekly": salary_funding,
+        "salary_deposited_this_period": as_float(salary_q.get("v")),
         "rate_bcv": rate_bcv,
         "rate_usdt": rate_usdt,
     }

@@ -560,6 +560,21 @@ h2 { margin-bottom: 6px; font-size: 18px; font-weight: 800; }
   text-overflow: ellipsis;
 }
 
+.cat-parent-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cyan);
+  background: rgba(32, 215, 232, 0.12);
+  border: 1px solid rgba(32, 215, 232, 0.28);
+  padding: 1px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
 .cat-spent {
   font-size: 14px;
   font-weight: 800;

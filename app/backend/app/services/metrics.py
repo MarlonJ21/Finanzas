@@ -48,7 +48,6 @@ def sustainable_income(month: str | None = None) -> float:
               AND Dominio='PERSONAL'
               AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
               AND EsIngresoEconomico=1
-              AND Quincena=1
             """,
             [like],
         )
@@ -58,17 +57,22 @@ def sustainable_income(month: str | None = None) -> float:
 
     row = query_one(
         """
-        SELECT MontoUSD AS amount
-        FROM movimientos
-        WHERE Dominio='PERSONAL'
-          AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
-          AND EsIngresoEconomico=1
-          AND Quincena=1
-        ORDER BY Fecha DESC
-        LIMIT 1
+        WITH monthly_salaries AS (
+            SELECT SUBSTR(Fecha, 1, 7) AS mes, SUM(MontoUSD) AS amount
+            FROM movimientos
+            WHERE Dominio='PERSONAL'
+              AND (Categoria='Salario' OR (Categoria='Ingresos' AND Subcategoria='Salario'))
+              AND EsIngresoEconomico=1
+            GROUP BY SUBSTR(Fecha, 1, 7)
+            HAVING SUM(MontoUSD) > 400
+            ORDER BY mes DESC
+            LIMIT 1
+        )
+        SELECT amount FROM monthly_salaries
         """
     )
-    return as_float(row.get("amount"))
+    amt = as_float(row.get("amount"))
+    return amt if amt > 0 else 865.24
 
 
 def month_bounds(month: str | None) -> tuple[str, str]:

@@ -135,16 +135,21 @@ const ETL_STEPS = [
 function RialModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState<"preview" | "commit" | null>(null);
+  const [busy, setBusy] = useState<boolean>(false);
   const [activeStep, setActiveStep] = useState<number>(-1);
   const [progressPct, setProgressPct] = useState<number>(0);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(mode: "preview" | "commit") {
-    if (!file) return;
-    setBusy(mode);
+  async function handleFileSelected(selectedFile: File) {
+    setFile(selectedFile);
+    await startFullImport(selectedFile);
+  }
+
+  async function startFullImport(selectedFile: File) {
+    setBusy(true);
     setError(null);
+    setResult(null);
     setActiveStep(0);
     setProgressPct(15);
 
@@ -153,53 +158,65 @@ function RialModal({ onClose }: { onClose: () => void }) {
       current += 1;
       if (current <= 4) {
         setActiveStep(current);
-        setProgressPct(Math.min(20 + current * 16, 85));
+        setProgressPct(Math.min(20 + current * 16, 88));
       }
-    }, 600);
+    }, 700);
 
     try {
-      const response = await uploadRial(mode, file);
+      const response = await uploadRial("commit", selectedFile);
       clearInterval(interval);
       setActiveStep(5);
       setProgressPct(100);
       setResult(response);
-      if (mode === "commit" && response.commit_status === "PASS") {
+      if (response.commit_status === "PASS") {
         await queryClient.invalidateQueries();
+      } else if (response.errors && response.errors.length > 0) {
+        setError(response.errors.join(". "));
       }
     } catch (err: any) {
       clearInterval(interval);
       setActiveStep(-1);
       setProgressPct(0);
-      setError(err?.message || "Error al procesar el archivo. Revisa que el backend esté disponible.");
+      setError(err?.message || "Error al procesar y actualizar el archivo. Revisa que el backend esté disponible.");
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   }
 
-  const status = result?.commit_status ?? result?.validation_status;
-  const ready = status === "PASS";
+  const isSuccess = result?.commit_status === "PASS";
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
       <div className="modal">
         <div className="sheet-handle" />
         <div className="modal-header">
           <div>
             <p className="eyebrow">Actualizar RIAL</p>
             <h1>Importa tu export financiero</h1>
-            <p className="subtle">Primero validamos el archivo. Tus datos se reemplazan solo después de confirmar.</p>
+            <p className="subtle">Sube tu archivo CSV y LUKA validará, clasificará y actualizará automáticamente tus finanzas.</p>
           </div>
-          <button className="ghost-button" aria-label="Cerrar" onClick={onClose}><X size={18} /></button>
+          <button className="ghost-button" aria-label="Cerrar" disabled={busy} onClick={onClose}><X size={18} /></button>
         </div>
         <div className="panel-pad page">
-          <label className="dropzone">
-            <input style={{ display: "none" }} type="file" accept=".csv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
-            <span>
-              <Upload size={28} />
-              <h2>{file ? file.name : "Arrastra tu export de RIAL aqui"}</h2>
-              <p className="subtle">o selecciona un archivo CSV</p>
-            </span>
-          </label>
+          {!isSuccess ? (
+            <label className={`dropzone ${busy ? "disabled-dropzone" : ""}`} style={{ pointerEvents: busy ? "none" : "auto", opacity: busy ? 0.7 : 1 }}>
+              <input
+                style={{ display: "none" }}
+                type="file"
+                accept=".csv"
+                disabled={busy}
+                onChange={(event) => {
+                  const f = event.target.files?.[0];
+                  if (f) handleFileSelected(f);
+                }}
+              />
+              <span>
+                <Upload size={28} />
+                <h2>{file ? file.name : "Arrastra tu export de RIAL aquí"}</h2>
+                <p className="subtle">o toca para seleccionar y actualizar automáticamente en un clic</p>
+              </span>
+            </label>
+          ) : null}
 
           {/* Stepper animado y barra de progreso */}
           <div className="etl-stepper-box">
@@ -212,7 +229,7 @@ function RialModal({ onClose }: { onClose: () => void }) {
                   <div className="etl-phase-pulse" />
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     <strong style={{ fontSize: 13, color: "var(--cyan)" }}>
-                      {busy === "commit" ? "Guardando en el Data Warehouse..." : "Validando y procesando..."}: {ETL_STEPS[Math.max(activeStep, 0)]?.label}
+                      {ETL_STEPS[Math.max(activeStep, 0)]?.label}
                     </strong>
                     <span style={{ fontSize: 11, color: "var(--muted)" }}>
                       {ETL_STEPS[Math.max(activeStep, 0)]?.desc}
@@ -224,8 +241,8 @@ function RialModal({ onClose }: { onClose: () => void }) {
 
             <div className="step-list">
               {ETL_STEPS.map((s, index) => {
-                const isDone = Boolean(result) || (busy !== null && index < activeStep);
-                const isCurrent = busy !== null && index === activeStep;
+                const isDone = isSuccess || (busy && index < activeStep);
+                const isCurrent = busy && index === activeStep;
                 return (
                   <div
                     className={`step ${isDone ? "done" : isCurrent ? "current-running active" : ""}`}
@@ -248,9 +265,14 @@ function RialModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          {result ? (
+          {result && isSuccess ? (
             <div className="surface-lite panel-pad">
-              <h2>{ready ? "LISTO PARA ACTUALIZAR" : "REVISAR"}</h2>
+              <h2 className="green" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CheckCircle2 size={20} style={{ color: "var(--green)" }} /> ¡Actualización completada con éxito!
+              </h2>
+              <p className="subtle" style={{ marginTop: 4, marginBottom: 12 }}>
+                Tus movimientos, reglas y presupuestos quedaron perfectamente sincronizados.
+              </p>
               <div className="detail-grid">
                 <Metric label="Archivo" value={String(result.filename ?? file?.name ?? "-")} />
                 <Metric label="Movimientos" value={String(result.transaction_rows ?? "-")} />
@@ -264,50 +286,28 @@ function RialModal({ onClose }: { onClose: () => void }) {
                   <strong>Fusión inteligente por fecha:</strong> Se conservaron {String(result.preserved_rows)} movimientos anteriores y se actualizaron {String(result.incoming_rows)} movimientos de este archivo ({String(result.incoming_period ?? "")}).
                 </div>
               ) : null}
-              {Number(result.pending_classification ?? 0) > 0 ? (
-                <div style={{ marginTop: 8, padding: "8px 12px", background: "rgba(59, 130, 246, 0.15)", borderRadius: 6, fontSize: "0.85rem", color: "#60a5fa" }}>
-                  <strong>{String(result.pending_classification)} movimientos sin clasificar:</strong> Podrás revisarlos y crear reglas automáticas en la pestaña <em>Clasificación y Reglas</em>.
-                </div>
-              ) : null}
+              <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+                <button className="primary-button" style={{ flex: 1 }} onClick={onClose}>
+                  Ver resumen actualizado
+                </button>
+              </div>
             </div>
           ) : null}
-          {error ? <div className="alert-item red">{error}</div> : null}
-          {result?.commit_status === "PASS" ? (
-            <div className="surface-lite panel-pad">
-              <h2 className="green">Actualizacion completada</h2>
-              <p className="subtle">Movimientos, presupuesto, forecast y overrides preservados quedaron recalculados.</p>
-              <button className="primary-button" onClick={onClose}>Ver resumen actualizado</button>
-            </div>
-          ) : (
-            <div className="button-row">
+
+          {error ? (
+            <div className="surface-lite panel-pad" style={{ border: "1px solid rgba(255, 94, 103, 0.4)" }}>
+              <div className="alert-item red">{error}</div>
               <button
                 className="secondary-button"
-                disabled={!file || !!busy}
-                onClick={() => run("preview")}
+                style={{ marginTop: 12 }}
+                onClick={() => {
+                  if (file) startFullImport(file);
+                }}
               >
-                {busy === "preview" ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Loader2 size={15} className="spin-animate" /> Validando archivo...
-                  </span>
-                ) : (
-                  "Preview"
-                )}
-              </button>
-              <button
-                className="primary-button"
-                disabled={!file || !!busy || !ready}
-                onClick={() => run("commit")}
-              >
-                {busy === "commit" ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Loader2 size={15} className="spin-animate" /> Actualizando finanzas...
-                  </span>
-                ) : (
-                  "Actualizar mis finanzas"
-                )}
+                Reintentar carga
               </button>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
