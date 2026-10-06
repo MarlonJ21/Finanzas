@@ -1,7 +1,7 @@
 ﻿MovimientoId,Fecha,DescripcionOriginal,TipoRial,Cuenta,MontoOriginal,MonedaOriginal,MontoUSD,CategoriaRial,DuplicateType,DuplicateGroup
 48a454badb5e8edac92d8286d3bdffe8,2026-07-18,Recarga Movistar,Egreso,BNC,300.0,VES,0.41,Casa,POSSIBLE_DUPLICATE,1
 bbde3904e88acbc1ea70434db24269aa,2026-07-18,Pasaje santa rosa,Egreso,BNC,300.0,VES,0.41,Transporte,POSSIBLE_DUPLICATE,1
-e528a7ddfe54d8fd85fe288389ffef81,2026-07-25,Compra caramelo menta,Egreso,BNC,220.0,VES,0.3,Gastos Mayores,POSSIBLE_DUPLICATE,2
+57e4107396c87c8ca2cc1b99b7bf1f11,2026-07-25,Compra caramelo menta,Egreso,BNC,220.0,VES,0.3,Alimentación,POSSIBLE_DUPLICATE,2
 b621843eb82e7d8cdb80e914f607e5e4,2026-07-25,Pago examen Anilet universidad,Egreso,BNC,220.0,VES,0.3,Gastos Anilet,POSSIBLE_DUPLICATE,2
 3c75fae8e76f5c3760e2f0fa0f7aaf70,2026-07-31,Recarga Digitel anilet,Egreso,BNC,300.0,VES,0.4,Gastos Anilet,POSSIBLE_DUPLICATE,3
 dc5cb35c27c03095365231ff9e0f30e8,2026-07-31,Recarga Movistar,Egreso,BNC,300.0,VES,0.4,Casa,POSSIBLE_DUPLICATE,3

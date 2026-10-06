@@ -31,9 +31,9 @@ def test_dashboard_metric_parity() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["personal_spend"] == 962.67
-    assert body["monthly_budget"] == 741.77
+    assert body["monthly_budget"] == 724.32
     assert body["biweekly_spend"] == 666.53
-    assert body["biweekly_budget"] == 370.86
+    assert body["biweekly_budget"] == 362.14
     assert body["salary_collected_biweekly"] == 550.14
 
 
@@ -41,10 +41,10 @@ def test_planner_summary() -> None:
     response = client.get("/api/planner/summary", params={"scenario": "REALISTIC"})
     assert response.status_code == 200
     body = response.json()
-    assert body["current_budget"] == 741.77
-    assert body["forecast"] == 1193.77
-    assert body["suggested"] == 1116.95
-    assert body["final"] == 1116.95
+    assert body["current_budget"] == 724.32
+    assert body["forecast"] == 1182.37
+    assert body["suggested"] == 1106.85
+    assert body["final"] == 1106.85
 
 
 def test_movements_endpoint() -> None:

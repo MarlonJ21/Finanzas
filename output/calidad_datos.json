@@ -1,6 +1,6 @@
 {
-  "status": "PASS",
-  "raw_rows_total": 577,
+  "status": "WARNING",
+  "raw_rows_total": 573,
   "transactions_total": 572,
   "excluded_rows": [
     {
@@ -8,43 +8,19 @@
       "Tipo": "HEADER",
       "Descripcion": "Fecha,Hora,Tipo,Categoría",
       "motivo_exclusion": "HEADER_ROW"
-    },
-    {
-      "RowNumber": 574,
-      "Tipo": "EMPTY",
-      "Descripcion": "",
-      "motivo_exclusion": "EMPTY_LINE"
-    },
-    {
-      "RowNumber": 575,
-      "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Total ingresos=4577.24",
-      "motivo_exclusion": "SUMMARY_CONTROL_ROW"
-    },
-    {
-      "RowNumber": 576,
-      "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Total egresos=3794.46",
-      "motivo_exclusion": "SUMMARY_CONTROL_ROW"
-    },
-    {
-      "RowNumber": 577,
-      "Tipo": "SUMMARY_CONTROL",
-      "Descripcion": "Balance=782.78",
-      "motivo_exclusion": "SUMMARY_CONTROL_ROW"
     }
   ],
   "exact_duplicates": 2,
   "possible_duplicates": 59,
-  "classified_high": 558,
+  "classified_high": 559,
   "classified_medium": 0,
-  "classified_manual_override": 14,
+  "classified_manual_override": 13,
   "unclassified": 0,
   "classification_rate": 100.0,
-  "missing_fx": 0,
+  "missing_fx": 1,
   "imputed_fx_values": 0,
-  "dim_categories_count": 67,
-  "distinct_idcategoria": 67,
+  "dim_categories_count": 68,
+  "distinct_idcategoria": 68,
   "movements_null_idcat": 0,
   "movements_orphans": 0,
   "budget_rows": 138,
@@ -57,7 +33,7 @@
   "date_min": "2026-07-01",
   "date_max": "2026-10-05",
   "domain_totals_usd": {
-    "personal": 2538.82,
+    "personal": 2537.77,
     "business": 239.68,
     "patrimonial": 5707.67
   },
