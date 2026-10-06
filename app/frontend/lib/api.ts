@@ -105,6 +105,35 @@ function snapshotFor(path: string): unknown {
       tipos_rial: ["", "Egreso", "Ingreso", "Transferencia (salida)", "Transferencia (entrada)"],
     };
   }
+  if (path.startsWith("/business/summary")) {
+    return {
+      month: "2026-10",
+      total_sales_usd: 233.28,
+      sales_count: 6,
+      total_expenses_usd: 39.87,
+      expenses_count: 8,
+      net_profit_usd: 193.41,
+      profit_margin_pct: 0.8291,
+      average_ticket_usd: 38.88,
+      all_time_sales_usd: 840.56,
+      all_time_expenses_usd: 239.68,
+      all_time_net_profit_usd: 600.88,
+      expenses_by_subcategory: [
+        { subcategory: "Meta Ads / Publicidad", amount_usd: 26.0, count: 2, pct: 0.6521 },
+        { subcategory: "Delivery de mercancía", amount_usd: 13.87, count: 6, pct: 0.3479 },
+      ],
+      sales_by_account: [
+        { account: "BNC", amount_usd: 193.28, count: 5, pct: 0.8285 },
+        { account: "Efectivo", amount_usd: 40.0, count: 1, pct: 0.1715 },
+      ],
+      monthly_trend: [
+        { month: "2026-10", sales_usd: 233.28, sales_count: 6, expenses_usd: 39.87, expenses_count: 8, net_profit_usd: 193.41, margin_pct: 0.8291 },
+        { month: "2026-09", sales_usd: 199.57, sales_count: 5, expenses_usd: 56.93, expenses_count: 8, net_profit_usd: 142.64, margin_pct: 0.7147 },
+        { month: "2026-08", sales_usd: 407.71, sales_count: 11, expenses_usd: 142.88, expenses_count: 18, net_profit_usd: 264.83, margin_pct: 0.6496 },
+      ],
+      available_months: ["2026-10", "2026-09", "2026-08"],
+    };
+  }
   return undefined;
 }
 
@@ -338,4 +367,68 @@ export async function syncFxRates(): Promise<FxRatesResponse> {
   if (!res.ok) throw new Error("ERROR_SYNCING_FX_RATES");
   return res.json();
 }
+
+export type BusinessExpenseBreakdown = {
+  subcategory: string;
+  amount_usd: number;
+  count: number;
+  pct: number;
+};
+
+export type BusinessAccountSales = {
+  account: string;
+  amount_usd: number;
+  count: number;
+  pct: number;
+};
+
+export type BusinessMonthlyTrend = {
+  month: string;
+  sales_usd: number;
+  sales_count: number;
+  expenses_usd: number;
+  expenses_count: number;
+  net_profit_usd: number;
+  margin_pct: number;
+};
+
+export type BusinessSummary = {
+  month: string;
+  total_sales_usd: number;
+  sales_count: number;
+  total_expenses_usd: number;
+  expenses_count: number;
+  net_profit_usd: number;
+  profit_margin_pct: number;
+  average_ticket_usd: number;
+  all_time_sales_usd: number;
+  all_time_expenses_usd: number;
+  all_time_net_profit_usd: number;
+  expenses_by_subcategory: BusinessExpenseBreakdown[];
+  sales_by_account: BusinessAccountSales[];
+  monthly_trend: BusinessMonthlyTrend[];
+  available_months: string[];
+};
+
+export type BusinessMovement = {
+  date: string;
+  time: string;
+  description: string;
+  domain: string;
+  category: string;
+  subcategory: string;
+  account: string;
+  amount_usd: number;
+  amount_original: string;
+  currency_original: string;
+  type: string;
+};
+
+export type BusinessMovementsResponse = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: BusinessMovement[];
+};
+
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownLeft,
@@ -169,6 +170,32 @@ function MovementsContent() {
             Solo Ingresos
           </button>
         </div>
+
+        {quickFilter === "NEGOCIO" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "rgba(51, 230, 164, 0.1)", border: "1px solid rgba(51, 230, 164, 0.3)", borderRadius: 12, padding: "10px 14px", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: "var(--green)", fontWeight: 650 }}>
+              🛍️ Mostrando movimientos comerciales de <strong>PremiadosVE</strong> (100% aislados de tus finanzas personales).
+            </span>
+            <Link
+              href="/premiados"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 12px",
+                borderRadius: 8,
+                background: "rgba(51, 230, 164, 0.2)",
+                color: "var(--green)",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Ver Panel PremiadosVE →
+            </Link>
+          </div>
+        )}
 
         {/* Tag when arriving from an alert */}
         {hasActiveCategoryFilter && (

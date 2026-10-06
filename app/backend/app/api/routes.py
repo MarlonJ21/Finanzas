@@ -317,6 +317,172 @@ def movements(
     return {"total": total, "limit": limit, "offset": offset, "items": rows}
 
 
+@router.get("/business/summary")
+def business_summary(month: str | None = None) -> dict[str, Any]:
+    months_rows = query_all(
+        "SELECT DISTINCT strftime(TRY_CAST(Fecha AS DATE), '%Y-%m') as mes FROM movimientos WHERE Dominio='NEGOCIO' ORDER BY mes DESC"
+    )
+    available_months = [r["mes"] for r in months_rows if r.get("mes")]
+
+    active_month = month
+    if not active_month and available_months:
+        active_month = available_months[0]
+    elif active_month and active_month != "all":
+        active_month = active_month[:7]
+
+    where = ["Dominio='NEGOCIO'"]
+    params: list[Any] = []
+    if active_month and active_month != "all":
+        where.append("Fecha LIKE ?")
+        params.append(f"{active_month}%")
+    where_str = " AND ".join(where)
+
+    sales_row = query_one(
+        f"SELECT SUM(MontoUSD) as total, COUNT(1) as count FROM movimientos WHERE {where_str} AND EsIngresoEconomico=1",
+        params,
+    )
+    exp_row = query_one(
+        f"SELECT SUM(MontoUSD) as total, COUNT(1) as count FROM movimientos WHERE {where_str} AND EsEgresoEconomico=1",
+        params,
+    )
+    sales = as_float(sales_row.get("total"))
+    sales_cnt = int(sales_row.get("count") or 0)
+    exp = as_float(exp_row.get("total"))
+    exp_cnt = int(exp_row.get("count") or 0)
+    net_profit = as_float(sales - exp)
+    margin = as_pct(net_profit / sales if sales else 0)
+    avg_ticket = as_float(sales / sales_cnt if sales_cnt else 0)
+
+    # Subcategory expenses
+    exp_by_sub = query_all(
+        f"""
+        SELECT Subcategoria as subcategory, SUM(MontoUSD) as amount_usd, COUNT(1) as count
+        FROM movimientos
+        WHERE {where_str} AND EsEgresoEconomico=1
+        GROUP BY Subcategoria
+        ORDER BY amount_usd DESC
+        """,
+        params,
+    )
+    for r in exp_by_sub:
+        amt = as_float(r["amount_usd"])
+        r["amount_usd"] = amt
+        r["pct"] = as_pct(amt / exp if exp else 0)
+        r["count"] = int(r["count"])
+
+    # Sales by account
+    sales_by_acc = query_all(
+        f"""
+        SELECT Cuenta as account, SUM(MontoUSD) as amount_usd, COUNT(1) as count
+        FROM movimientos
+        WHERE {where_str} AND EsIngresoEconomico=1
+        GROUP BY Cuenta
+        ORDER BY amount_usd DESC
+        """,
+        params,
+    )
+    for r in sales_by_acc:
+        amt = as_float(r["amount_usd"])
+        r["amount_usd"] = amt
+        r["pct"] = as_pct(amt / sales if sales else 0)
+        r["count"] = int(r["count"])
+
+    # Trend
+    trend = query_all(
+        """
+        SELECT
+          strftime(TRY_CAST(Fecha AS DATE), '%Y-%m') as month,
+          ROUND(SUM(CASE WHEN EsIngresoEconomico=1 THEN MontoUSD ELSE 0 END), 2) as sales_usd,
+          COUNT(CASE WHEN EsIngresoEconomico=1 THEN 1 END) as sales_count,
+          ROUND(SUM(CASE WHEN EsEgresoEconomico=1 THEN MontoUSD ELSE 0 END), 2) as expenses_usd,
+          COUNT(CASE WHEN EsEgresoEconomico=1 THEN 1 END) as expenses_count,
+          ROUND(SUM(CASE WHEN EsIngresoEconomico=1 THEN MontoUSD ELSE 0 END) - SUM(CASE WHEN EsEgresoEconomico=1 THEN MontoUSD ELSE 0 END), 2) as net_profit_usd
+        FROM movimientos
+        WHERE Dominio='NEGOCIO'
+        GROUP BY 1
+        ORDER BY 1 DESC
+        """
+    )
+    for t in trend:
+        s = float(t["sales_usd"] or 0)
+        p = float(t["net_profit_usd"] or 0)
+        t["margin_pct"] = as_pct(p / s if s else 0)
+
+    # All time
+    all_time = query_one(
+        """
+        SELECT
+          SUM(CASE WHEN EsIngresoEconomico=1 THEN MontoUSD ELSE 0 END) as sales,
+          SUM(CASE WHEN EsEgresoEconomico=1 THEN MontoUSD ELSE 0 END) as expenses
+        FROM movimientos
+        WHERE Dominio='NEGOCIO'
+        """
+    )
+    at_sales = as_float(all_time.get("sales"))
+    at_exp = as_float(all_time.get("expenses"))
+
+    return {
+        "month": active_month,
+        "total_sales_usd": sales,
+        "sales_count": sales_cnt,
+        "total_expenses_usd": exp,
+        "expenses_count": exp_cnt,
+        "net_profit_usd": net_profit,
+        "profit_margin_pct": margin,
+        "average_ticket_usd": avg_ticket,
+        "all_time_sales_usd": at_sales,
+        "all_time_expenses_usd": at_exp,
+        "all_time_net_profit_usd": as_float(at_sales - at_exp),
+        "expenses_by_subcategory": exp_by_sub,
+        "sales_by_account": sales_by_acc,
+        "monthly_trend": trend,
+        "available_months": available_months,
+    }
+
+
+@router.get("/business/movements")
+def business_movements(
+    month: str | None = None,
+    type: str | None = None,
+    subcategory: str | None = None,
+    search: str | None = None,
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> dict[str, Any]:
+    where = ["Dominio='NEGOCIO'"]
+    params: list[Any] = []
+    if month and month != "all":
+        where.append("Fecha LIKE ?")
+        params.append(f"{month[:7]}%")
+    if type and type.lower() in ("ingreso", "venta", "ventas"):
+        where.append("EsIngresoEconomico=1")
+    elif type and type.lower() in ("egreso", "gasto", "gastos"):
+        where.append("EsEgresoEconomico=1")
+    if subcategory:
+        where.append("Subcategoria = ?")
+        params.append(subcategory)
+    if search:
+        where.append("lower(DescripcionOriginal) LIKE ?")
+        params.append(f"%{search.lower()}%")
+
+    clause = "WHERE " + " AND ".join(where)
+    total = query_one(f"SELECT COUNT(*) AS n FROM movimientos {clause}", params).get("n", 0)
+    rows = query_all(
+        f"""
+        SELECT Fecha AS date, Hora AS time, DescripcionOriginal AS description, Dominio AS domain,
+               Categoria AS category, Subcategoria AS subcategory, Cuenta AS account,
+               MontoUSD AS amount_usd, MontoOriginal AS amount_original, MonedaOriginal AS currency_original,
+               TipoRial AS type
+        FROM movimientos
+        {clause}
+        ORDER BY Fecha DESC, Hora DESC
+        LIMIT ? OFFSET ?
+        """,
+        params + [limit, offset],
+    )
+    return {"total": total, "limit": limit, "offset": offset, "items": rows}
+
+
 @router.get("/planner/summary")
 def planner_summary(scenario: str | None = "REALISTIC", plan_month: str | None = None) -> dict[str, Any]:
     sc = scenario_value(scenario)

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Bot, CalendarDays, CheckCircle2, Home, Landmark, Loader2, RefreshCw, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
+import { BarChart3, Bot, CalendarDays, CheckCircle2, Home, Landmark, Loader2, RefreshCw, ShoppingBag, SlidersHorizontal, Table2, Upload, WalletCards, X } from "lucide-react";
 import { useState } from "react";
 import { api, uploadRial, type DataStatus } from "../../lib/api";
 
 const nav = [
   { href: "/", label: "Inicio", icon: Home },
   { href: "/planner", label: "Planificador", icon: BarChart3 },
+  { href: "/premiados", label: "PremiadosVE", icon: ShoppingBag },
   { href: "/luka", label: "LUKA", icon: Bot },
   { href: "/movements", label: "Movimientos", icon: Table2 },
   { href: "/settings", label: "Clasificación y Reglas", icon: SlidersHorizontal },

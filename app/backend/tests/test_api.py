@@ -91,3 +91,41 @@ def test_classification_endpoints() -> None:
     assert "MARLON" in opts["titulares"]
     assert len(opts["categorias"]) > 0
 
+
+def test_business_summary():
+    client = TestClient(app)
+    # Test October
+    r = client.get("/api/business/summary?month=2026-10")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["month"] == "2026-10"
+    assert data["total_sales_usd"] > 0
+    assert data["total_expenses_usd"] > 0
+    assert round(data["net_profit_usd"], 2) == round(data["total_sales_usd"] - data["total_expenses_usd"], 2)
+    assert len(data["expenses_by_subcategory"]) > 0
+    assert len(data["monthly_trend"]) >= 3
+    assert "2026-10" in data["available_months"]
+
+    # Test All time
+    r_all = client.get("/api/business/summary?month=all")
+    assert r_all.status_code == 200
+    data_all = r_all.json()
+    assert data_all["total_sales_usd"] >= data["total_sales_usd"]
+    assert data_all["all_time_sales_usd"] == data_all["total_sales_usd"]
+
+
+def test_business_movements():
+    client = TestClient(app)
+    r = client.get("/api/business/movements?month=2026-10")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["total"] > 0
+    assert all(item["domain"] == "NEGOCIO" for item in data["items"])
+
+    # Test filtering by type
+    r_sales = client.get("/api/business/movements?month=2026-10&type=Ingreso")
+    assert r_sales.status_code == 200
+    data_sales = r_sales.json()
+    assert all(item["type"] == "Ingreso" for item in data_sales["items"])
+
+
