@@ -3,7 +3,7 @@ R001,10,,,,(?i)chatgpt,regex,PERSONAL,Suscripciones / Herramientas,ChatGPT,MARLO
 R002,10,,,,(?i)\brial\b,regex,PERSONAL,Suscripciones / Herramientas,RIAL,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
 R003,10,,,,(?i)capcut,regex,PERSONAL,Suscripciones / Herramientas,CapCut,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
 R003A,10,,,,(?i)gemini,regex,PERSONAL,Suscripciones / Herramientas,Gemini,MARLON,EGRESO_CONSUMO,1,1,0,1,0,0,0,0,0,0
-R004,10,,,,(?i)meta\s*ads|publicidad|campa[nñ]a.*premiados,regex,NEGOCIO,PremiadosVE,Meta Ads / Publicidad,PREMIADOSVE,PUBLICIDAD,1,0,0,1,1,0,0,0,0,0
+R004,10,,,,(?i)meta\s*ads|publicidad|campa[nñ]a.*premiados,regex,NEGOCIO,PremiadosVE,Meta Ads,PREMIADOSVE,PUBLICIDAD,1,0,0,1,1,0,0,0,0,0
 R005,10,,Ingreso,,(?i)salario|quincena,regex,PERSONAL,Ingresos,Salario,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
 R006,10,Ingreso,,,(?i)salario|quincena,regex,PERSONAL,Ingresos,Salario,MARLON,INGRESOS_OPERATIVOS,0,0,1,0,0,0,0,0,0,0
 R007,10,,,,(?i)cashea.*(cuota|\d+-\d+|pago cuota),regex,PERSONAL,Deuda / CASHEA,Cuota existente,MARLON,PAGO_DEUDA,1,0,0,1,0,0,0,1,0,0

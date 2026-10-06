@@ -172,8 +172,8 @@ def apply_classification(df_norm: pd.DataFrame, rules_path: str, overrides_path:
                 else:
                     nat = "EGRESO_OPERATIVO"
                     es_ing, es_egr, es_presup, es_cons = 0, 1, 1, 0
-                    if "meta ads" in desc.lower():
-                        subcat_clean = "Meta Ads / Publicidad"
+                    if "meta ads" in desc.lower() or "publicidad" in desc.lower() or subcat_clean.lower() in ["meta ads", "meta ads / publicidad"]:
+                        subcat_clean = "Meta Ads"
             elif is_cxc or is_prestamo:
                 dominio = "PATRIMONIAL"
                 titular = "MARLON"
